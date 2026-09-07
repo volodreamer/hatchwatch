@@ -220,15 +220,15 @@ html[data-theme="flower-perfume"] {
 }
 
 html[data-theme="tama-garden"] {
-  --color-bg: #2b4c3f;
-  --color-surface: #355a4a;
-  --color-surface-2: #3f6756;
-  --color-fg: #e8f4ec;
-  --color-muted: #a8c4b4;
-  --color-faint: #7a9a88;
+  --color-bg: #006269;
+  --color-surface: #0d7a82;
+  --color-surface-2: #1a8a91;
+  --color-fg: #e6f6f6;
+  --color-muted: #9ec9cb;
+  --color-faint: #6a9ea0;
   --color-primary: #ffb7ce;
   --color-primary-fg: #4a1830;
-  --color-border: #1f3a30;
+  --color-border: #004a50;
   --color-danger: #e87880;
   --color-warn: #e0c06a;
   --color-ok: #a362ce;
@@ -240,15 +240,15 @@ html[data-theme="tama-garden"] {
 }
 
 html[data-theme="garden-test"] {
-  --color-bg: #2b4c3f;
-  --color-surface: #355a4a;
-  --color-surface-2: #3f6756;
-  --color-fg: #e8f4ec;
-  --color-muted: #a8c4b4;
-  --color-faint: #7a9a88;
+  --color-bg: #006269;
+  --color-surface: #0d7a82;
+  --color-surface-2: #1a8a91;
+  --color-fg: #e6f6f6;
+  --color-muted: #9ec9cb;
+  --color-faint: #6a9ea0;
   --color-primary: #a362ce;
   --color-primary-fg: #f8f0ff;
-  --color-border: #1f3a30;
+  --color-border: #004a50;
   --color-danger: #e87880;
   --color-warn: #e0c06a;
   --color-ok: #7cd9a1;
