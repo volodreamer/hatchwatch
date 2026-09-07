@@ -233,7 +233,7 @@ export function HomeDashboard() {
 function Overlay({ children, onClose, closeLabel }: { children: ReactNode; onClose: () => void; closeLabel: string }) {
   return (
     <div className="fixed inset-0 z-40 flex items-end justify-center bg-bg/70 p-3 pt-16 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:items-center">
-      <button type="button" className="absolute inset-0 cursor-default" aria-label={closeLabel} onClick={onClose} />
+      <button type="button" className="overlay-dismiss absolute inset-0 cursor-default" aria-label={closeLabel} onClick={onClose} />
       <div className="relative z-10 max-h-[90dvh] w-full max-w-lg overflow-y-auto rounded-xl bg-surface p-4 shadow-border">
         {children}
       </div>

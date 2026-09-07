@@ -273,6 +273,11 @@ html[data-theme="garden-test"] .tile-kicker {
   color: var(--color-primary);
 }
 
+html[data-theme="garden-test"] button:not(.overlay-dismiss),
+html[data-theme="garden-test"] [data-slot="button"] {
+  box-shadow: 0 0 0 1px var(--color-primary);
+}
+
 html[data-theme="gingham-avocado"] {
   --color-bg: #c8e8a8;
   --color-surface: #d8f0bc;
