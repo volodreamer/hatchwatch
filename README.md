@@ -4,7 +4,7 @@ A Tamagotchi Gen 1 care companion for the physical shell. Pick who you want to g
 
 **Live (GitHub Pages):** [volodreamer.github.io/hatchwatch](https://volodreamer.github.io/hatchwatch/)
 
-Progress is stored in the browser (`hatchwatch-v1`). Grok Hatchwatch and GitHub Pages do not share it. Use **Save file** / **Open file** in Settings or Match — phone paste boxes cut long backups. **Copy short** drops the care log so it can fit the old paste box.
+Progress is stored in the browser (`hatchwatch-v1`). Grok Hatchwatch and GitHub Pages do not share it. Use **Save file** / **Open file** in Settings, or optional **Sign in with Google** for a hidden Drive copy. Phone paste boxes cut long backups. **Copy short** drops the care log so it can fit the old paste box.
 
 ## Language
 
@@ -40,6 +40,25 @@ npm run build:pages   # static build for GitHub Pages (base /hatchwatch/)
 ```
 
 Pages deploys from `.github/workflows/pages.yml` on every push to `main`. Repo → Settings → Pages → **GitHub Actions**.
+
+## Google backup (optional)
+
+Works on GitHub Pages with no server. The pet stays in the browser; Google holds a second copy in Drive **app data** (not your normal Drive files).
+
+1. [Google Cloud Console](https://console.cloud.google.com/) → new project (e.g. Hatchwatch).
+2. Enable **Google Drive API**.
+3. **OAuth consent screen**: External, Testing. Add your Gmail as a test user.
+4. **Credentials** → Create credentials → OAuth client ID → Web application.
+5. Authorized JavaScript origins:
+   - `https://volodreamer.github.io`
+   - `http://localhost:8080` (local preview only)
+6. Copy the client ID.
+7. GitHub repo → Settings → Secrets and variables → Actions → Variables → `GOOGLE_CLIENT_ID` = that value.
+8. Re-run the Pages workflow.
+
+Until that variable is set, Settings still has file backup; the Google button stays off.
+
+Scopes requested: `drive.appdata` and email. Not full Drive.
 
 ## Native Android
 

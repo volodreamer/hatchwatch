@@ -10,6 +10,7 @@ import {
 } from "@/lib/backup";
 import type { Pet } from "@/lib/tama/types";
 import { loadPet } from "@/store/pet-store";
+import { GoogleDrivePanel } from "@/components/care/GoogleDrivePanel";
 import { ClipboardPaste, Copy, Download, FolderOpen } from "lucide-react";
 import { toast } from "sonner";
 
@@ -155,6 +156,7 @@ export function BackupPanel({ onRestored }: { onRestored?: () => void }) {
           </Button>
         </div>
       ) : null}
+      <GoogleDrivePanel onRestored={onRestored} />
     </div>
   );
 }
