@@ -2,6 +2,7 @@ package com.hatchwatch.app.store
 
 import android.content.Context
 import com.hatchwatch.app.AlarmScheduler
+import com.hatchwatch.app.CareNotifier
 import com.hatchwatch.app.ChirpPlayer
 import com.hatchwatch.app.engine.ActionType
 import com.hatchwatch.app.engine.CharacterId
@@ -49,26 +50,41 @@ object PetStore {
         if (next != null) AlarmScheduler.sync(ctx, next) else AlarmScheduler.cancelAll(ctx)
     }
 
-    private fun maybeChirp(prev: Pet, next: Pet) {
-        if (!next.soundOn) return
+    private fun maybeAlert(prev: Pet, next: Pet) {
         val ctx = app ?: return
+        val sleepOpen = prev.sleepWindowAt == null && next.sleepWindowAt != null && next.lightsOn
         val drop = next.hunger < prev.hunger ||
             next.happy < prev.happy ||
             (prev.hungerWindowAt == null && next.hungerWindowAt != null) ||
             (prev.happyWindowAt == null && next.happyWindowAt != null) ||
-            (prev.sleepWindowAt == null && next.sleepWindowAt != null && next.lightsOn) ||
+            sleepOpen ||
             (prev.misbehaveAt == null && next.misbehaveAt != null) ||
             (prev.checkPoopAt == null && next.checkPoopAt != null) ||
             (prev.checkSickAt == null && next.checkSickAt != null) ||
             (prev.checkDiscAt == null && next.checkDiscAt != null)
-        if (drop) ChirpPlayer.play(ctx, false)
+        if (!drop) return
+        if (next.soundOn) ChirpPlayer.play(ctx, false)
+        if (!next.notifOn) return
+        val (title, body, kind) = when {
+            sleepOpen -> Triple("It fell asleep", "Turn the lights off within 15 minutes.", "lights")
+            next.hunger < prev.hunger || (prev.hungerWindowAt == null && next.hungerWindowAt != null) ->
+                Triple("Hunger dropped", "Feed a meal before the 15-minute call runs out.", "hunger")
+            next.happy < prev.happy || (prev.happyWindowAt == null && next.happyWindowAt != null) ->
+                Triple("Happy dropped", "Play a game before the call times out.", "happy")
+            prev.checkPoopAt == null && next.checkPoopAt != null ->
+                Triple("Look for poop", "The shell will not beep.", "poop")
+            prev.checkSickAt == null && next.checkSickAt != null ->
+                Triple("Look for a skull", "The shell will not beep.", "sick")
+            else -> Triple("Check attention", "Look at the shell.", "discipline")
+        }
+        CareNotifier.show(ctx, title, body, kind, false)
     }
 
     private fun setPet(next: Pet?, chirp: Boolean = true) {
         val prev = _pet.value
         _pet.value = next
         persist(next)
-        if (chirp && prev != null && next != null) maybeChirp(prev, next)
+        if (chirp && prev != null && next != null) maybeAlert(prev, next)
     }
 
     fun startRun(hatchAt: Long, clockSetAt: Long, targetId: CharacterId, region: String, firmware: Firmware, nickname: String) {
