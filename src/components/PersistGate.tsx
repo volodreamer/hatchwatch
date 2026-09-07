@@ -1,5 +1,6 @@
 import { useEffect, type ReactNode } from "react";
 import { CareAlarmHost } from "@/components/CareAlarmHost";
+import { GoogleSyncHost } from "@/components/care/GoogleSyncHost";
 import { installAudioUnlockListeners, registerCareWorker } from "@/lib/audio";
 import { applyTheme, DEFAULT_THEME } from "@/lib/theme";
 import { applyDetectedLocaleIfUnset, useLocaleStore } from "@/store/locale-store";
@@ -55,7 +56,12 @@ export function PersistGate() {
 
   useEffect(() => installAudioUnlockListeners(), []);
 
-  return <CareAlarmHost />;
+  return (
+    <>
+      <CareAlarmHost />
+      <GoogleSyncHost />
+    </>
+  );
 }
 
 /** Wait for localStorage before showing setup, so a live run is not replaced by the picker. */

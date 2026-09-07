@@ -1,26 +1,36 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/hooks/use-i18n";
 import { readBackupRaw } from "@/lib/backup";
 import {
   compareSaves,
-  connectGoogle,
-  disconnectGoogle,
   isGoogleConfigured,
   loadFromGoogle,
   petFromBackupRaw,
-  rememberedGoogleEmail,
   saveToGoogle,
 } from "@/lib/google-drive";
+import {
+  getGoogleSyncSnap,
+  markGoogleInStep,
+  resumeGoogle,
+  signInGoogle,
+  signOutGoogle,
+  subscribeGoogleSync,
+} from "@/lib/google-sync";
 import { loadPet } from "@/store/pet-store";
 import { Cloud, CloudDownload, CloudUpload, LogOut } from "lucide-react";
 import { toast } from "sonner";
 
 export function GoogleDrivePanel({ onRestored }: { onRestored?: () => void }) {
   const { t } = useI18n();
-  const [email, setEmail] = useState(() => rememberedGoogleEmail());
+  const [snap, setSnap] = useState(getGoogleSyncSnap);
   const [busy, setBusy] = useState(false);
   const configured = isGoogleConfigured();
+
+  useEffect(() => subscribeGoogleSync(() => setSnap({ ...getGoogleSyncSnap() })), []);
+
+  const locked = busy || snap.busy;
+  const email = snap.email;
 
   function fail(err: unknown) {
     const code = err instanceof Error ? err.message : "fail";
@@ -30,8 +40,18 @@ export function GoogleDrivePanel({ onRestored }: { onRestored?: () => void }) {
   async function signIn() {
     setBusy(true);
     try {
-      setEmail(await connectGoogle());
-      toast(t("set.google.ready"));
+      await signInGoogle();
+    } catch (err) {
+      fail(err);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function resume() {
+    setBusy(true);
+    try {
+      await resumeGoogle();
     } catch (err) {
       fail(err);
     } finally {
@@ -42,11 +62,10 @@ export function GoogleDrivePanel({ onRestored }: { onRestored?: () => void }) {
   async function signOut() {
     setBusy(true);
     try {
-      await disconnectGoogle();
-      setEmail(null);
+      await signOutGoogle();
       toast(t("set.google.outDone"));
     } catch {
-      setEmail(null);
+      await signOutGoogle().catch(() => undefined);
     } finally {
       setBusy(false);
     }
@@ -66,6 +85,7 @@ export function GoogleDrivePanel({ onRestored }: { onRestored?: () => void }) {
       if (cmp === "cloud-newer" && !window.confirm(t("set.google.older"))) return;
       if (cmp === "other-run" && !window.confirm(t("set.google.otherSave"))) return;
       await saveToGoogle(raw);
+      markGoogleInStep("pushed", local);
       toast(t("set.google.saved"));
     } catch (err) {
       fail(err);
@@ -92,6 +112,7 @@ export function GoogleDrivePanel({ onRestored }: { onRestored?: () => void }) {
       if (cmp === "local-newer" && !window.confirm(t("set.google.newer"))) return;
       if (cmp === "other-run" && !window.confirm(t("set.google.otherLoad"))) return;
       loadPet(remote);
+      markGoogleInStep("pulled", remote);
       toast(t("set.google.loaded"));
       onRestored?.();
     } catch (err) {
@@ -101,32 +122,59 @@ export function GoogleDrivePanel({ onRestored }: { onRestored?: () => void }) {
     }
   }
 
+  const status =
+    snap.lastKind === "conflict"
+      ? t("set.google.conflict")
+      : snap.lastKind === "fail"
+        ? t("set.google.fail")
+        : snap.lastKind === "pulled"
+          ? t("set.google.loaded")
+          : snap.lastKind === "pushed"
+            ? t("set.google.saved")
+            : snap.lastKind === "idle"
+              ? t("set.google.synced")
+              : null;
+
   return (
-    <div className="flex flex-col gap-2 border-t border-border pt-4" aria-busy={busy}>
+    <div className="flex flex-col gap-2 border-t border-border pt-4" aria-busy={locked}>
       <p className="text-xs font-medium uppercase tracking-widest text-muted">{t("set.google")}</p>
       <p className="text-sm text-pretty text-muted">{t("set.google.d")}</p>
       {!configured ? (
         <p className="text-sm text-pretty text-muted">{t("set.google.need")}</p>
-      ) : email ? (
+      ) : email && snap.live ? (
         <>
           <p className="text-sm text-fg">{t("set.google.as", { email })}</p>
+          <p className="text-sm text-pretty text-muted">{t("set.google.auto")}</p>
+          {status ? <p className="text-sm text-pretty text-muted">{status}</p> : null}
           <div className="flex flex-col gap-2">
-            <Button type="button" variant="outline" disabled={busy} onClick={() => void saveCloud()}>
+            <Button type="button" variant="outline" disabled={locked} onClick={() => void saveCloud()}>
               <CloudUpload />
               {t("set.google.save")}
             </Button>
-            <Button type="button" variant="outline" disabled={busy} onClick={() => void loadCloud()}>
+            <Button type="button" variant="outline" disabled={locked} onClick={() => void loadCloud()}>
               <CloudDownload />
               {t("set.google.load")}
             </Button>
           </div>
-          <Button type="button" variant="ghost" size="sm" className="self-start text-muted" disabled={busy} onClick={() => void signOut()}>
+          <Button type="button" variant="ghost" size="sm" className="self-start text-muted" disabled={locked} onClick={() => void signOut()}>
+            <LogOut className="size-4" />
+            {t("set.google.out")}
+          </Button>
+        </>
+      ) : email ? (
+        <>
+          <p className="text-sm text-fg">{t("set.google.as", { email })}</p>
+          <Button type="button" variant="outline" disabled={locked} onClick={() => void resume()}>
+            <Cloud />
+            {t("set.google.resume")}
+          </Button>
+          <Button type="button" variant="ghost" size="sm" className="self-start text-muted" disabled={locked} onClick={() => void signOut()}>
             <LogOut className="size-4" />
             {t("set.google.out")}
           </Button>
         </>
       ) : (
-        <Button type="button" variant="outline" disabled={busy} onClick={() => void signIn()}>
+        <Button type="button" variant="outline" disabled={locked} onClick={() => void signIn()}>
           <Cloud />
           {t("set.google.in")}
         </Button>

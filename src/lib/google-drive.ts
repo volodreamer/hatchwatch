@@ -37,6 +37,8 @@ declare global {
 }
 
 export type SaveCmp = "none" | "local-only" | "cloud-only" | "same" | "cloud-newer" | "local-newer" | "other-run";
+export type GoogleSyncAction = "none" | "push" | "pull" | "conflict";
+export type GooglePrompt = "" | "select_account" | "none";
 
 export function googleClientId(): string {
   const v = import.meta.env?.VITE_GOOGLE_CLIENT_ID;
@@ -62,6 +64,21 @@ export function compareSaves(local: Pet | null, remote: Pet | null): SaveCmp {
   return "same";
 }
 
+export function autoSyncAction(cmp: SaveCmp): GoogleSyncAction {
+  switch (cmp) {
+    case "local-only":
+    case "local-newer":
+      return "push";
+    case "cloud-only":
+    case "cloud-newer":
+      return "pull";
+    case "other-run":
+      return "conflict";
+    default:
+      return "none";
+  }
+}
+
 let gsiReady: Promise<void> | null = null;
 let tokenClient: TokenClient | null = null;
 let accessToken: string | null = null;
@@ -74,7 +91,7 @@ function loadGsi(): Promise<void> {
   if (gsiReady) return gsiReady;
   gsiReady = new Promise((resolve, reject) => {
     const done = () => {
-      if (window.google?.accounts?.oauth2) resolve();
+      if (window.google?.accounts.oauth2) resolve();
       else reject(new Error("gsi"));
     };
     const existing = document.querySelector(`script[src="${GSI_SRC}"]`);
@@ -125,7 +142,7 @@ function ensureClient() {
   });
 }
 
-function requestToken(prompt: "" | "select_account" = ""): Promise<string> {
+function requestToken(prompt: GooglePrompt = ""): Promise<string> {
   if (accessToken && Date.now() < tokenExpiresAt - 20_000 && prompt === "") {
     return Promise.resolve(accessToken);
   }
@@ -137,6 +154,10 @@ function requestToken(prompt: "" | "select_account" = ""): Promise<string> {
         tokenClient!.requestAccessToken({ prompt });
       }),
   );
+}
+
+export function hasGoogleToken(): boolean {
+  return Boolean(accessToken && Date.now() < tokenExpiresAt - 20_000);
 }
 
 async function authed(url: string, init: RequestInit = {}, retried = false): Promise<Response> {
@@ -170,12 +191,12 @@ async function findFileId(): Promise<string | null> {
   return body.files?.[0]?.id ?? null;
 }
 
-export async function connectGoogle(): Promise<string> {
+export async function connectGoogle(prompt: GooglePrompt = "select_account"): Promise<string> {
   if (!isGoogleConfigured()) throw new Error("need");
-  if (accessToken && Date.now() < tokenExpiresAt - 20_000) {
+  if (hasGoogleToken() && prompt !== "select_account") {
     return rememberedGoogleEmail() ?? userEmail();
   }
-  await requestToken("select_account");
+  await requestToken(prompt);
   return userEmail();
 }
 

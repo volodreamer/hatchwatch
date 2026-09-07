@@ -43,7 +43,7 @@ Pages deploys from `.github/workflows/pages.yml` on every push to `main`. Repo â
 
 ## Google backup (optional)
 
-Works on GitHub Pages with no server. The pet stays in the browser; Google holds a second copy in Drive **app data** (not your normal Drive files).
+Works on GitHub Pages with no server. The pet stays in the browser; Google holds a second copy in Drive **app data** (not your normal Drive files). After you sign in, Hatchwatch keeps that copy in step while the tab is open. Save / Load are still there if Google has a different run.
 
 1. [Google Cloud Console](https://console.cloud.google.com/) â†’ new project (e.g. Hatchwatch).
 2. Enable **Google Drive API**.

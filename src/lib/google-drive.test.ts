@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { compareSaves } from "./google-drive.ts";
+import { autoSyncAction, compareSaves } from "./google-drive.ts";
 import type { Pet } from "./tama/types.ts";
 
 function pet(over: Partial<Pet> = {}): Pet {
@@ -69,5 +69,23 @@ describe("compareSaves", () => {
   it("flags a different run", () => {
     assert.equal(compareSaves(pet({ id: "a" }), pet({ id: "b" })), "other-run");
     assert.equal(compareSaves(pet({ hatchAt: 1 }), pet({ hatchAt: 2 })), "other-run");
+  });
+});
+
+describe("autoSyncAction", () => {
+  it("pushes when this phone is ahead or alone", () => {
+    assert.equal(autoSyncAction("local-only"), "push");
+    assert.equal(autoSyncAction("local-newer"), "push");
+  });
+
+  it("pulls when Google is ahead or alone", () => {
+    assert.equal(autoSyncAction("cloud-only"), "pull");
+    assert.equal(autoSyncAction("cloud-newer"), "pull");
+  });
+
+  it("leaves a different run for Save / Load", () => {
+    assert.equal(autoSyncAction("other-run"), "conflict");
+    assert.equal(autoSyncAction("same"), "none");
+    assert.equal(autoSyncAction("none"), "none");
   });
 });
