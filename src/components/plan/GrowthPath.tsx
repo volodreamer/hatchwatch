@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { useI18n } from "@/hooks/use-i18n";
 import { formBlurb, planHeadline, planSteps } from "@/lib/care-copy";
 import { CHARACTERS } from "@/lib/tama/characters";
-import { TARGET_PLANS } from "@/lib/tama/evolution";
+import { isGrownForm, TARGET_PLANS } from "@/lib/tama/evolution";
 import type { DerivedState } from "@/lib/tama/types";
 
 export function GrowthPath({ derived }: { derived: DerivedState }) {
@@ -18,6 +18,11 @@ export function GrowthPath({ derived }: { derived: DerivedState }) {
         <p className="tile-kicker text-xs font-medium uppercase tracking-[0.18em] text-muted">{t("plan.kicker")}</p>
         <h1 className="font-display text-3xl leading-none">{plan.name}</h1>
         <p className="mt-2 text-pretty text-muted">{planHeadline(locale, derived.pet.targetId)}</p>
+        {isGrownForm(derived.pet) && !plan.path.includes(current) ? (
+          <p className="mt-2 text-sm text-pretty text-fg">
+            {t("plan.grewOff", { name: CHARACTERS[current].name, target: plan.name })}
+          </p>
+        ) : null}
       </header>
 
       <ol className="flex flex-col gap-0">

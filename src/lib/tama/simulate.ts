@@ -12,7 +12,6 @@ import {
   TAMATCHI_MS,
   happyLossMin,
   hungerLossMin,
-  secretForRegion,
   statsFor,
 } from "./characters.ts";
 import { addAwakeMs, isSleepingAt, nextSleepAt, nextWakeAt } from "./clock.ts";
@@ -26,6 +25,7 @@ import {
   pathStatus,
   predictedAdult,
   teenCharacter,
+  teenKindForForm,
   teenKindNow,
 } from "./evolution.ts";
 import type {
@@ -735,7 +735,13 @@ export function syncPet(
     p.weight = Math.max(p.weight, statsFor(p.form).minWeight);
   }
   if (p.form === "tamatchi" || p.form === "kuchitamatchi") {
-    p.teenKind = teenKindNow(p);
+    p.teenKind = teenKindForForm(p);
+  }
+  if (formChanged && (statsFor(p.form).stage === "adult" || statsFor(p.form).stage === "secret")) {
+    p.secretEligible =
+      p.form === "maskutchi" &&
+      (p.targetId === "bill" || p.targetId === "oyajitchi") &&
+      canBecomeSecret(teenKindNow(p), "maskutchi");
   }
   const note = formChanged
     ? `Matched ${statsFor(p.form).name} · mistakes carry over`
@@ -965,7 +971,7 @@ export function derive(pet: Pet, now: number): DerivedState {
     alerts,
     primary,
     predictedTeen: p.form === "marutchi" || p.form === "babytchi" || p.form === "egg" ? teenKindNow(p) : p.teenKind,
-    predictedAdult: p.form === "maskutchi" && p.secretEligible ? secretForRegion(p.region) : predictedAdult(p),
+    predictedAdult: predictedAdult(p),
     onTarget: onTarget(p),
     pathStatus: pathStatus(p),
     budget: mistakeBudget(p),

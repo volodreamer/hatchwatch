@@ -2,7 +2,7 @@ import { Badge } from "@/components/ui/badge";
 import { useI18n } from "@/hooks/use-i18n";
 import { translateBudget, translateTip } from "@/lib/care-copy";
 import { CHARACTERS } from "@/lib/tama/characters";
-import { scoldAdvice } from "@/lib/tama/evolution";
+import { isGrownForm, scoldAdvice, stillHeadingSecret } from "@/lib/tama/evolution";
 import type { DerivedState } from "@/lib/tama/types";
 import { cn } from "@/lib/utils";
 
@@ -12,9 +12,13 @@ export function MistakeBudgetCard({ derived }: { derived: DerivedState }) {
   const target = CHARACTERS[pet.targetId];
   const predicted = CHARACTERS[predictedAdult];
   const scold = scoldAdvice(pet);
+  const grown = isGrownForm(pet);
+  const secretOpen = stillHeadingSecret(pet);
   const badge =
     pathStatus === "hit" ? t("path.hit") : pathStatus === "path" ? t("path.path") : t("path.off");
   const badgeVariant = pathStatus === "hit" ? "ok" : pathStatus === "path" ? "lcd" : "warn";
+  const formName = CHARACTERS[pet.form].name;
+  const showHeading = secretOpen || (!grown && predicted.id !== target.id);
 
   return (
     <section className="rounded-xl bg-surface p-4 shadow-border">
@@ -23,9 +27,12 @@ export function MistakeBudgetCard({ derived }: { derived: DerivedState }) {
         <Badge variant={badgeVariant}>{badge}</Badge>
       </div>
       <p className="mt-2 font-display text-xl leading-tight">
-        {t("path.aim", { name: target.name })}
-        <span className="text-muted">{t("path.heading", { name: predicted.name })}</span>
+        {grown ? t("path.grew", { name: formName }) : t("path.aim", { name: target.name })}
+        {showHeading ? <span className="text-muted">{t("path.heading", { name: predicted.name })}</span> : null}
       </p>
+      {grown && !secretOpen && pet.form !== pet.targetId ? (
+        <p className="mt-1 text-sm text-pretty text-muted">{t("path.wanted", { name: target.name })}</p>
+      ) : null}
       <p className="mt-1 text-sm text-pretty text-muted">{translateBudget(locale, pet)}</p>
 
       <div className="mt-4 grid grid-cols-2 gap-2">
@@ -43,10 +50,22 @@ export function MistakeBudgetCard({ derived }: { derived: DerivedState }) {
       <p
         className={cn(
           "mt-2 text-xs font-medium uppercase tracking-widest",
-          scold === "scold" ? "text-ok" : scold === "ignore" ? "text-warn" : "text-muted",
+          grown && !secretOpen
+            ? "text-muted"
+            : scold === "scold"
+              ? "text-ok"
+              : scold === "ignore"
+                ? "text-warn"
+                : "text-muted",
         )}
       >
-        {scold === "scold" ? t("path.scold") : scold === "ignore" ? t("path.ignore") : t("path.either")}
+        {grown && !secretOpen
+          ? t("path.grown")
+          : scold === "scold"
+            ? t("path.scold")
+            : scold === "ignore"
+              ? t("path.ignore")
+              : t("path.either")}
       </p>
     </section>
   );

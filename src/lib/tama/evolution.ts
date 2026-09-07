@@ -61,6 +61,14 @@ export function canBecomeSecret(kind: TeenKind, adult: CharacterId): boolean {
 }
 
 export function predictedAdult(pet: Pet): CharacterId {
+  const stage = CHARACTERS[pet.form].stage;
+  if (stage === "secret") return pet.form;
+  if (stage === "adult") {
+    if (pet.form === "maskutchi" && pet.secretEligible) {
+      return secretForRegion(pet.region);
+    }
+    return pet.form;
+  }
   const disc = discForEvo(pet);
   if (pet.form === "egg" || pet.form === "babytchi" || pet.form === "marutchi") {
     const kind = teenFromMistakes(pet.careMistakes, disc);
@@ -76,6 +84,22 @@ export function predictedAdult(pet: Pet): CharacterId {
     return "maskutchi";
   }
   return adult;
+}
+
+export function isGrownForm(pet: Pet): boolean {
+  const stage = CHARACTERS[pet.form].stage;
+  return stage === "adult" || stage === "secret";
+}
+
+export function stillHeadingSecret(pet: Pet): boolean {
+  return pet.form === "maskutchi" && pet.secretEligible;
+}
+
+export function teenKindForForm(pet: Pet): TeenKind {
+  const disc = discForEvo(pet);
+  if (pet.form === "tamatchi") return disc < 3 ? "tamatchi-t1" : "tamatchi-t2";
+  if (pet.form === "kuchitamatchi") return disc < 3 ? "kuchitamatchi-t1" : "kuchitamatchi-t2";
+  return teenKindNow(pet);
 }
 
 export const TARGET_PLANS: Record<AdultId, TargetPlan> = {
@@ -232,7 +256,12 @@ export function mistakeBudget(pet: Pet): MistakeBudget {
   const discRemaining = discMax == null ? null : Math.max(0, discMax - discUsed);
 
   let summary: string;
-  if (careMax != null && careUsed > careMax) {
+  if (isGrownForm(pet) && !stillHeadingSecret(pet)) {
+    summary =
+      pet.form === pet.targetId
+        ? `Grown as ${displayName(pet.form)}. Care mistakes ${careUsed}. Discipline ${discUsed}.`
+        : `Grown as ${displayName(pet.form)} (wanted ${displayName(pet.targetId)}). Care mistakes ${careUsed}. Discipline ${discUsed}.`;
+  } else if (careMax != null && careUsed > careMax) {
     summary = `Care mistakes over budget (${careUsed} / ${careMax}). ${displayName(pet.targetId)} is unlikely unless the device disagrees.`;
   } else if (discMax != null && discUsed > discMax) {
     summary = `Too many discipline mistakes (${discUsed} / max ${discMax}).`;

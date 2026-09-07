@@ -1,6 +1,6 @@
 import { t, type Locale } from "@/lib/i18n";
 import { CHARACTERS, hungerLossMin } from "@/lib/tama/characters";
-import { nextFormAfter, TARGET_PLANS } from "@/lib/tama/evolution";
+import { isGrownForm, nextFormAfter, stillHeadingSecret, TARGET_PLANS } from "@/lib/tama/evolution";
 import type { AdultId, CareAlert, CharacterId, DerivedState, Pet } from "@/lib/tama/types";
 
 export function translateAlert(locale: Locale, alert: CareAlert, derived: DerivedState) {
@@ -74,6 +74,16 @@ export function translateBudget(locale: Locale, pet: Pet) {
   const discMax = plan.discMax;
   const careRemaining = careMax == null ? null : Math.max(0, careMax - careUsed);
   const name = CHARACTERS[pet.targetId].name;
+  if (isGrownForm(pet) && !stillHeadingSecret(pet)) {
+    return pet.form === pet.targetId
+      ? t(locale, "budget.grown", { name: CHARACTERS[pet.form].name, care: careUsed, disc: discUsed })
+      : t(locale, "budget.grownOff", {
+          name: CHARACTERS[pet.form].name,
+          target: name,
+          care: careUsed,
+          disc: discUsed,
+        });
+  }
   if (careMax != null && careUsed > careMax) {
     return t(locale, "budget.careOver", { used: careUsed, max: careMax, name });
   }
