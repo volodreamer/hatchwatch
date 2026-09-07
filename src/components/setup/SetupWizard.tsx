@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { LangSwitch } from "@/components/ui/lang-switch";
+import { ShellThemePicker } from "@/components/ui/shell-theme";
+import { VersionSelect } from "@/components/ui/version-select";
 import { useI18n } from "@/hooks/use-i18n";
 import { planHeadline, planSteps } from "@/lib/care-copy";
 import { ADULT_IDS, CHARACTERS } from "@/lib/tama/characters";
@@ -61,8 +63,9 @@ export function SetupWizard() {
         <p className="text-xs font-medium uppercase tracking-[0.22em] text-primary">{t("setup.kicker")}</p>
         <h1 className="font-display text-4xl leading-none tracking-wide text-balance">Hatchwatch</h1>
         <p className="max-w-md text-pretty text-muted">{t("setup.blurb")}</p>
-        <div className="mt-2">
+        <div className="mt-2 flex flex-col gap-4">
           <LangSwitch />
+          <ShellThemePicker />
         </div>
       </header>
 
@@ -213,26 +216,7 @@ export function SetupWizard() {
               </Button>
             </div>
           </div>
-          <div className="flex flex-col gap-2">
-            <Label>{t("setup.fw")}</Label>
-            <div className="grid grid-cols-2 gap-2">
-              <Button
-                type="button"
-                variant={firmware === "replica" ? "default" : "secondary"}
-                onClick={() => setFirmware("replica")}
-              >
-                {t("setup.fw.replica")}
-              </Button>
-              <Button
-                type="button"
-                variant={firmware === "vintage" ? "default" : "secondary"}
-                onClick={() => setFirmware("vintage")}
-              >
-                {t("setup.fw.vintage")}
-              </Button>
-            </div>
-            <p className="text-sm text-pretty text-muted">{t("setup.fw.d")}</p>
-          </div>
+          <VersionSelect value={firmware} onChange={setFirmware} />
           <div className="flex gap-2">
             <Button variant="secondary" className="flex-1" onClick={() => setStep(2)}>
               {t("setup.back")}

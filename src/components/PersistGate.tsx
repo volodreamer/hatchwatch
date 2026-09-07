@@ -1,12 +1,15 @@
 import { useEffect, type ReactNode } from "react";
 import { CareAlarmHost } from "@/components/CareAlarmHost";
 import { installAudioUnlockListeners, registerCareWorker } from "@/lib/audio";
+import { applyTheme, DEFAULT_THEME } from "@/lib/theme";
 import { applyDetectedLocaleIfUnset, useLocaleStore } from "@/store/locale-store";
 import { recoverPetFromStorage, usePetStore } from "@/store/pet-store";
+import { useThemeStore } from "@/store/theme-store";
 
 export function PersistGate() {
   const petHydrated = usePetStore((s) => s.hydrated);
   const localeHydrated = useLocaleStore((s) => s.hydrated);
+  const themeHydrated = useThemeStore((s) => s.hydrated);
 
   useEffect(() => {
     if (localeHydrated) return;
@@ -14,6 +17,14 @@ export function PersistGate() {
       applyDetectedLocaleIfUnset();
     });
   }, [localeHydrated]);
+
+  useEffect(() => {
+    if (themeHydrated) return;
+    void Promise.resolve(useThemeStore.persist.rehydrate()).then(() => {
+      applyTheme(useThemeStore.getState().theme);
+      if (!useThemeStore.getState().hydrated) useThemeStore.getState().markHydrated();
+    });
+  }, [themeHydrated]);
 
   useEffect(() => {
     if (petHydrated) return;
@@ -31,6 +42,10 @@ export function PersistGate() {
       if (!useLocaleStore.getState().hydrated) {
         applyDetectedLocaleIfUnset();
         useLocaleStore.getState().markHydrated();
+      }
+      if (!useThemeStore.getState().hydrated) {
+        applyTheme(useThemeStore.getState().theme || DEFAULT_THEME);
+        useThemeStore.getState().markHydrated();
       }
     }, 1800);
     return () => {

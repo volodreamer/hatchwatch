@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { BackupPanel } from "@/components/care/BackupPanel";
 import { LangSwitch } from "@/components/ui/lang-switch";
+import { ShellThemePicker } from "@/components/ui/shell-theme";
+import { VersionSelect } from "@/components/ui/version-select";
 import { useI18n } from "@/hooks/use-i18n";
 import { armAudio, disarmAudio, playCall } from "@/lib/audio";
 import { saveUrlFile } from "@/lib/backup";
@@ -54,24 +56,11 @@ export function SettingsSheet({ pet, onClose }: { pet: Pet; onClose: () => void 
       </section>
 
       <section className="flex flex-col gap-2 border-t border-border pt-4">
-        <p className="text-xs font-medium uppercase tracking-widest text-muted">{t("setup.fw")}</p>
-        <div className="grid grid-cols-2 gap-2">
-          <Button
-            type="button"
-            variant={pet.firmware === "replica" ? "default" : "secondary"}
-            onClick={() => setFirmware("replica")}
-          >
-            {t("setup.fw.replica")}
-          </Button>
-          <Button
-            type="button"
-            variant={pet.firmware === "vintage" ? "default" : "secondary"}
-            onClick={() => setFirmware("vintage")}
-          >
-            {t("setup.fw.vintage")}
-          </Button>
-        </div>
-        <p className="text-sm text-pretty text-muted">{t("setup.fw.d")}</p>
+        <VersionSelect value={pet.firmware} onChange={setFirmware} />
+      </section>
+
+      <section className="flex flex-col gap-2 border-t border-border pt-4">
+        <ShellThemePicker />
       </section>
 
       <section className="flex flex-col gap-2 border-t border-border pt-4">

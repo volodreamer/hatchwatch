@@ -2,7 +2,7 @@ import { createRootRoute, HeadContent, Outlet, Scripts } from "@tanstack/react-r
 import { AuthProvider } from "@/lib/auth/provider";
 import { PreviewHostBridge } from "@/components/preview-host-bridge";
 import { PersistGate } from "@/components/PersistGate";
-import { Toaster } from "sonner";
+import { AppToaster } from "@/components/AppToaster";
 import { asset } from "@/lib/asset";
 import appCss from "../styles.css?url";
 
@@ -45,7 +45,7 @@ export const Route = createRootRoute({
     ],
   }),
   component: () => (
-    <html lang="en" className="antialiased" suppressHydrationWarning>
+    <html lang="en" className="antialiased" data-theme="yellow-black" data-scheme="light" suppressHydrationWarning>
       <head>
         <HeadContent />
       </head>
@@ -55,22 +55,7 @@ export const Route = createRootRoute({
         <AuthProvider>
           <Outlet />
         </AuthProvider>
-        <Toaster
-          theme="dark"
-          position="bottom-center"
-          duration={4500}
-          visibleToasts={2}
-          offset={{ bottom: "calc(5.5rem + env(safe-area-inset-bottom, 0px))" }}
-          mobileOffset={{ bottom: "calc(5.5rem + env(safe-area-inset-bottom, 0px))" }}
-          toastOptions={{
-            style: {
-              background: "#171c14",
-              color: "#e8edd8",
-              border: "1px solid #2a3224",
-              zIndex: 80,
-            },
-          }}
-        />
+        <AppToaster />
         <Scripts />
       </body>
     </html>
