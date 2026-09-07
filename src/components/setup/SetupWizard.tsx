@@ -9,6 +9,7 @@ import { ShellThemePicker } from "@/components/ui/shell-theme";
 import { VersionSelect } from "@/components/ui/version-select";
 import { useI18n } from "@/hooks/use-i18n";
 import { planHeadline, planSteps } from "@/lib/care-copy";
+import { asset } from "@/lib/asset";
 import { ADULT_IDS, CHARACTERS } from "@/lib/tama/characters";
 import { TARGET_PLANS } from "@/lib/tama/evolution";
 import type { AdultId, Firmware } from "@/lib/tama/types";
@@ -241,6 +242,14 @@ export function SetupWizard() {
 
       <div className="relative z-10 border-t border-border pt-4">
         <BackupPanel />
+        <a
+          href={asset("privacy.html")}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-3 inline-block text-sm text-muted underline-offset-4 hover:text-fg hover:underline"
+        >
+          {t("set.privacy")}
+        </a>
       </div>
     </div>
   );

@@ -60,6 +60,10 @@ Until that variable is set, Settings still has file backup; the Google button st
 
 Scopes requested: `drive.appdata` and email. Not full Drive.
 
+Privacy policy (for the Google consent screen): [volodreamer.github.io/hatchwatch/privacy.html](https://volodreamer.github.io/hatchwatch/privacy.html)
+
+For your own Gmail, keep the app in **Testing** and add that address as a test user. Publishing to Production with Drive app data also needs Google’s verification.
+
 ## Native Android
 
 Paused. Use the website for now.

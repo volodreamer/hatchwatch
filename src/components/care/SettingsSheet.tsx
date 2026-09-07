@@ -157,6 +157,14 @@ export function SettingsSheet({ pet, onClose }: { pet: Pet; onClose: () => void 
         >
           github.com/volodreamer/hatchwatch
         </a>
+        <a
+          href={asset("privacy.html")}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-sm text-muted underline-offset-4 hover:text-fg hover:underline"
+        >
+          {t("set.privacy")}
+        </a>
       </section>
 
       <section className="flex flex-col gap-2 border-t border-border pt-4">

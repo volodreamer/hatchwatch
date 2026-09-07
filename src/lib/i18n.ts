@@ -290,6 +290,7 @@ const en: Dict = {
   "set.zipHint": "Same save as a backup. Unzip over your hatchwatch clone, then push main. If Chrome says the file is unavailable, use the files in this chat.",
   "set.zipSaved": "Overlay saved — unzip over the clone, then push main.",
   "set.zipFail": "This window blocked the download. Use the overlay zip in the chat.",
+  "set.privacy": "Privacy",
 
   "sync.title": "Match the device",
   "sync.lead": "Copy the status screens from the shell. Changing a heart count restarts that meter from now (tap Meal/Game right after the shell). Leaving the numbers alone keeps the countdown.",
@@ -755,6 +756,7 @@ const uk: Dict = {
   "set.zipHint": "Той самий спосіб, що й резервна копія. Розпакуй поверх клону hatchwatch і пушни main. Якщо Chrome каже, що файл недоступний — візьми файли з чату.",
   "set.zipSaved": "Overlay збережено — розпакуй поверх клону і пушни main.",
   "set.zipFail": "Це вікно заблокувало завантаження. Візьми overlay zip з чату.",
+  "set.privacy": "Приватність",
 
   "sync.title": "Підігнати корпус",
   "sync.lead": "Скопіюй екрани статусу з корпуса. Зміна числа сердець перезапускає цей лічильник від зараз (тисни Обід/Гру одразу після корпуса). Якщо не чіпати — відлік лишається.",

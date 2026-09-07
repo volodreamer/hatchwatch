@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Hatchwatch Privacy Policy</title>
+    <meta
+      name="description"
+      content="How Hatchwatch stores your Tamagotchi run, and what optional Google sign-in can access."
+    />
+    <link rel="canonical" href="https://volodreamer.github.io/hatchwatch/privacy.html" />
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Silkscreen:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #ffd700;
+        --fg: #1a1a1a;
+        --muted: #4a4208;
+        --surface: #ffe44d;
+        --border: #d4b400;
+      }
+      * { box-sizing: border-box; }
+      html { color-scheme: light; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--fg);
+        font-family: Outfit, system-ui, sans-serif;
+        line-height: 1.55;
+      }
+      main {
+        max-width: 40rem;
+        margin: 0 auto;
+        padding: 2rem 1.25rem 4rem;
+      }
+      .kicker {
+        font-size: 0.75rem;
+        font-weight: 600;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        margin: 0 0 0.5rem;
+      }
+      h1 {
+        font-family: Silkscreen, Outfit, sans-serif;
+        font-size: 2rem;
+        line-height: 1.1;
+        margin: 0 0 0.75rem;
+      }
+      h2 {
+        font-family: Silkscreen, Outfit, sans-serif;
+        font-size: 1.05rem;
+        margin: 1.75rem 0 0.5rem;
+      }
+      p, li { color: var(--fg); }
+      p { margin: 0 0 0.85rem; }
+      .muted { color: var(--muted); }
+      a { color: var(--fg); }
+      ul { margin: 0 0 0.85rem; padding-left: 1.2rem; }
+      .lang {
+        display: flex;
+        gap: 0.5rem;
+        margin: 1rem 0 1.5rem;
+      }
+      .lang a {
+        display: inline-flex;
+        min-height: 2.5rem;
+        align-items: center;
+        padding: 0 0.9rem;
+        border-radius: 0.5rem;
+        background: var(--surface);
+        box-shadow: 0 0 0 1px color-mix(in srgb, var(--fg) 12%, transparent);
+        text-decoration: none;
+        font-size: 0.9rem;
+        font-weight: 500;
+      }
+      .box {
+        background: var(--surface);
+        box-shadow: 0 0 0 1px color-mix(in srgb, var(--fg) 10%, transparent);
+        border-radius: 0.75rem;
+        padding: 1rem 1.1rem;
+        margin: 0 0 1.25rem;
+      }
+      [lang="uk"] { display: none; }
+      html[data-lang="uk"] [lang="en"] { display: none; }
+      html[data-lang="uk"] [lang="uk"] { display: block; }
+      html[data-lang="uk"] li[lang="uk"] { display: list-item; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <p class="kicker">Hatchwatch</p>
+      <h1 lang="en">Privacy policy</h1>
+      <h1 lang="uk">Політика приватності</h1>
+      <p class="muted" lang="en">Last updated 7 September 2026. This page is for the web app at volodreamer.github.io/hatchwatch.</p>
+      <p class="muted" lang="uk">Оновлено 7 вересня 2026. Ця сторінка для вебзастосунку volodreamer.github.io/hatchwatch.</p>
+      <div class="lang">
+        <a href="#en" onclick="document.documentElement.dataset.lang='en'; return false;">English</a>
+        <a href="#uk" onclick="document.documentElement.dataset.lang='uk'; return false;">Українська</a>
+      </div>
+      <p><a href="./">← Hatchwatch</a></p>
+
+      <div class="box" lang="en">
+        Hatchwatch is a Tamagotchi Gen 1 care companion. You log hatch time and button presses; it tracks hearts, discipline, and the 15-minute care window. It runs in your browser. There is no Hatchwatch account server.
+      </div>
+      <div class="box" lang="uk">
+        Hatchwatch — супутник догляду за Tamagotchi 1-го покоління. Ти фіксуєш час вилуплення і натискання кнопок; він стежить за серцями, дисципліною і 15-хвилинним вікном. Працює в браузері. Окремого сервера облікових записів Hatchwatch немає.
+      </div>
+
+      <h2 lang="en">Data on this device</h2>
+      <h2 lang="uk">Дані на цьому пристрої</h2>
+      <p lang="en">The pet run (hearts, discipline, care log, settings) is stored in this browser as <code>hatchwatch-v1</code>. Language and shell theme are stored locally too. File backup (Save file / Copy short) never leaves the phone unless you copy or send the file yourself.</p>
+      <p lang="uk">Забіг (серця, дисципліна, журнал, налаштування) лежить у цьому браузері як <code>hatchwatch-v1</code>. Мова і колір корпуса теж локально. Файл копії (Зберегти файл / Коротка копія) нікуди не йде, поки ти сам його не скопіюєш або не надішлеш.</p>
+
+      <h2 lang="en">Optional Google backup</h2>
+      <h2 lang="uk">Необов’язкова копія в Google</h2>
+      <p lang="en">Sign in with Google is optional. File backup works without it. If you sign in, Hatchwatch asks Google for:</p>
+      <p lang="uk">Вхід через Google необов’язковий. Файл копії працює без нього. Якщо увійти, Hatchwatch просить у Google:</p>
+      <ul>
+        <li lang="en">Your email address — shown in Settings as “signed in as …”, also kept in this browser as <code>hatchwatch-google-email</code>.</li>
+        <li lang="uk">Адресу пошти — показується в Налаштуваннях як «увійшов як …», також у цьому браузері як <code>hatchwatch-google-email</code>.</li>
+        <li lang="en">Drive <strong>app data</strong> only — a hidden app folder, not your normal Drive files, photos, or Docs. Hatchwatch writes one JSON file named <code>hatchwatch.json</code> (the same payload as Save file).</li>
+        <li lang="uk">Лише <strong>дані застосунку Drive</strong> — прихована папка, не звичайні файли Drive, фото чи Docs. Hatchwatch пише один JSON <code>hatchwatch.json</code> (той самий вміст, що й «Зберегти файл»).</li>
+      </ul>
+      <p lang="en">The Google access token is kept in memory for this tab. It is not written to disk. Hatchwatch does not request full Drive access, Gmail, Calendar, or contacts.</p>
+      <p lang="uk">Токен Google тримається в пам’яті цієї вкладки. На диск не пишеться. Hatchwatch не просить повний доступ до Drive, Gmail, Календаря чи контактів.</p>
+
+      <h2 lang="en">What we do not do</h2>
+      <h2 lang="uk">Чого ми не робимо</h2>
+      <ul>
+        <li lang="en">No ads. No sale of personal data. No Hatchwatch cloud database of pets or emails.</li>
+        <li lang="uk">Без реклами. Без продажу персональних даних. Немає хмарної бази Hatchwatch із забігами чи поштами.</li>
+        <li lang="en">We do not share Google user data with other companies. Google (sign-in and Drive) and GitHub Pages (hosting this site) process requests under their own policies.</li>
+        <li lang="uk">Ми не передаємо дані Google іншим компаніям. Google (вхід і Drive) і GitHub Pages (хостинг) обробляють запити за своїми політиками.</li>
+      </ul>
+
+      <h2 lang="en">How long it stays</h2>
+      <h2 lang="uk">Скільки це зберігається</h2>
+      <p lang="en">Local data stays until you End run, clear this site’s data, or overwrite it with a restore. The Drive app-data copy stays in your Google account until you overwrite it from Hatchwatch or remove Hatchwatch’s access. Revoking access stops new reads and writes; it does not always delete the hidden file automatically.</p>
+      <p lang="uk">Локальні дані лишаються, поки не натиснеш «Завершити забіг», не очистиш дані сайту або не перезапишеш відновленням. Копія в Drive лишається в акаунті Google, поки не перезапишеш її з Hatchwatch або не прибереш доступ. Відкликання доступу зупиняє нові читання й записи; прихований файл сам не завжди зникає.</p>
+
+      <h2 lang="en">Your controls</h2>
+      <h2 lang="uk">Твої дії</h2>
+      <ul>
+        <li lang="en">Sign out in Hatchwatch Settings.</li>
+        <li lang="uk">Вийти в Налаштуваннях Hatchwatch.</li>
+        <li lang="en">Revoke Hatchwatch at <a href="https://myaccount.google.com/permissions">Google Account → Third-party access</a>.</li>
+        <li lang="uk">Відкликати Hatchwatch у <a href="https://myaccount.google.com/permissions">акаунті Google → Доступ сторонніх додатків</a>.</li>
+        <li lang="en">Delete the local run with End run, or clear site data in the browser.</li>
+        <li lang="uk">Видалити локальний забіг кнопкою «Завершити забіг» або очистити дані сайту в браузері.</li>
+      </ul>
+
+      <h2 lang="en">Children</h2>
+      <h2 lang="uk">Діти</h2>
+      <p lang="en">Hatchwatch is a care log for a toy. Do not use Google sign-in with a child account. Google may block those accounts from granting Drive app data.</p>
+      <p lang="uk">Hatchwatch — журнал догляду за іграшкою. Не входь через Google з дитячого акаунта. Google може заборонити таким акаунтам доступ до даних застосунку Drive.</p>
+
+      <h2 lang="en">Contact</h2>
+      <h2 lang="uk">Контакт</h2>
+      <p lang="en">Questions about this policy: open an issue on <a href="https://github.com/volodreamer/hatchwatch">github.com/volodreamer/hatchwatch</a>.</p>
+      <p lang="uk">Питання щодо цієї політики: issue на <a href="https://github.com/volodreamer/hatchwatch">github.com/volodreamer/hatchwatch</a>.</p>
+    </main>
+    <script>
+      if (location.hash === "#uk" || (navigator.language || "").toLowerCase().startsWith("uk")) {
+        document.documentElement.dataset.lang = "uk";
+      }
+    </script>
+  </body>
+</html>
