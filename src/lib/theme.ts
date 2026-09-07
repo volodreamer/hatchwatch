@@ -34,7 +34,6 @@ const LIGHT: ReadonlySet<ThemeId> = new Set([
   "candy-swirl",
   "argyle-heart",
   "flower-perfume",
-  "tama-garden",
   "gingham-avocado",
   "pastel-checkers",
   "diner",

@@ -220,22 +220,22 @@ html[data-theme="flower-perfume"] {
 }
 
 html[data-theme="tama-garden"] {
-  --color-bg: #7cd9a1;
-  --color-surface: #8ee4b0;
-  --color-surface-2: #a6ecc2;
-  --color-fg: #143024;
-  --color-muted: #3a6850;
-  --color-faint: #5a8870;
+  --color-bg: #2b4c3f;
+  --color-surface: #355a4a;
+  --color-surface-2: #3f6756;
+  --color-fg: #e8f4ec;
+  --color-muted: #a8c4b4;
+  --color-faint: #7a9a88;
   --color-primary: #ffb7ce;
   --color-primary-fg: #4a1830;
-  --color-border: #5cbc84;
-  --color-danger: #b03040;
-  --color-warn: #8a6810;
+  --color-border: #1f3a30;
+  --color-danger: #e87880;
+  --color-warn: #e0c06a;
   --color-ok: #a362ce;
   --shell-pattern:
-    radial-gradient(ellipse at 18% 22%, rgb(163 98 206 / 0.22) 0 18px, transparent 19px),
-    radial-gradient(ellipse at 78% 70%, rgb(255 183 206 / 0.35) 0 16px, transparent 17px),
-    radial-gradient(circle at 50% 48%, rgb(20 80 40 / 0.08) 0 6px, transparent 7px);
+    radial-gradient(ellipse at 18% 22%, rgb(124 217 161 / 0.22) 0 18px, transparent 19px),
+    radial-gradient(ellipse at 78% 70%, rgb(255 183 206 / 0.28) 0 16px, transparent 17px),
+    radial-gradient(ellipse at 52% 48%, rgb(163 98 206 / 0.18) 0 12px, transparent 13px);
   --shell-pattern-size: 160px 160px;
 }
 
