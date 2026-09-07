@@ -18,6 +18,9 @@ function snap(partial: Partial<ChirpSnapshot> = {}): ChirpSnapshot {
     happyWindowAt: null,
     sleepWindowAt: null,
     misbehaveAt: null,
+    checkPoopAt: null,
+    checkSickAt: null,
+    checkDiscAt: null,
     ...partial,
   };
 }
@@ -100,5 +103,30 @@ describe("chirpEvents", () => {
       assert.deepEqual(out, []);
       prev = next;
     }
+  });
+
+  it("drop-chirps when poop is due (shell is silent)", () => {
+    const fired = new Set<string>();
+    const prev = snap();
+    const next = snap({ checkPoopAt: t0, now: t0 });
+    const out = chirpEvents(prev, next, fired);
+    assert.equal(out[0]?.kind, "drop");
+    assert.equal(out[0]?.alertKind, "poop");
+  });
+
+  it("drop-chirps when the sickness timer fires (shell is silent)", () => {
+    const fired = new Set<string>();
+    const prev = snap();
+    const next = snap({ checkSickAt: t0, now: t0 });
+    const out = chirpEvents(prev, next, fired);
+    assert.equal(out[0]?.alertKind, "sick");
+  });
+
+  it("drop-chirps when attention is predicted", () => {
+    const fired = new Set<string>();
+    const prev = snap();
+    const next = snap({ checkDiscAt: t0, now: t0 });
+    const out = chirpEvents(prev, next, fired);
+    assert.equal(out[0]?.alertKind, "discipline");
   });
 });

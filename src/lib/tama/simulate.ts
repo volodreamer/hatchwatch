@@ -14,28 +14,30 @@ import {
   hungerLossMin,
   secretForRegion,
   statsFor,
-} from "./characters";
-import { addAwakeMs, isSleepingAt, nextSleepAt, nextWakeAt } from "./clock";
+} from "./characters.ts";
+import { addAwakeMs, isSleepingAt, nextSleepAt, nextWakeAt } from "./clock.ts";
 import {
   adultFrom,
   canBecomeSecret,
+  discForEvo,
   mistakeBudget,
   nextFormAfter,
   onTarget,
   pathStatus,
   predictedAdult,
   teenCharacter,
-  teenFromMistakes,
-} from "./evolution";
+  teenKindNow,
+} from "./evolution.ts";
 import type {
   ActionType,
   CareAlert,
   CareEvent,
   CharacterId,
   DerivedState,
+  Firmware,
   Pet,
   Urgency,
-} from "./types";
+} from "./types.ts";
 
 function uid(): string {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
@@ -57,11 +59,24 @@ function schedule(pet: Pet) {
   return { wake: s.wakeHour, sleep: s.sleepHour };
 }
 
+/** Old backups lack firmware / check fields. */
+export function normalizePet(raw: Pet): Pet {
+  return {
+    ...raw,
+    firmware: raw.firmware === "vintage" ? "vintage" : "replica",
+    checkPoopAt: raw.checkPoopAt ?? null,
+    checkSickAt: raw.checkSickAt ?? null,
+    checkDiscAt: raw.checkDiscAt ?? null,
+    stageSickDone: Boolean(raw.stageSickDone),
+  };
+}
+
 export function createPet(opts: {
   hatchAt: number;
   clockSetAt?: number;
   targetId: Pet["targetId"];
   region: Pet["region"];
+  firmware?: Firmware;
   nickname?: string;
   now?: number;
 }): Pet {
@@ -77,6 +92,7 @@ export function createPet(opts: {
     clockSetAt,
     targetId: opts.targetId,
     region: opts.region,
+    firmware: opts.firmware ?? "replica",
     createdAt: now,
     lastTickAt: Math.min(now, hatchAt),
     form,
@@ -103,6 +119,10 @@ export function createPet(opts: {
     sleepWindowAt: null,
     misbehaveAt: null,
     heartDecrements: 0,
+    checkPoopAt: null,
+    checkSickAt: null,
+    checkDiscAt: null,
+    stageSickDone: false,
     snackCount: 0,
     events: [],
     notifOn: false,
@@ -129,6 +149,7 @@ export function createDemoPet(now = Date.now()): Pet {
     clockSetAt: hatchAt - EGG_MS,
     targetId: "mametchi",
     region: "en",
+    firmware: "replica",
     createdAt: now,
     lastTickAt: now,
     form: "marutchi",
@@ -155,6 +176,10 @@ export function createDemoPet(now = Date.now()): Pet {
     sleepWindowAt: null,
     misbehaveAt: null,
     heartDecrements: 3,
+    checkPoopAt: null,
+    checkSickAt: null,
+    checkDiscAt: null,
+    stageSickDone: false,
     snackCount: 0,
     events: [
       { id: uid(), at: hatchAt, type: "hatch", note: "Hatched as Babytchi" },
@@ -180,9 +205,27 @@ function nextDrainAt(
 
 function nextPoopAt(pet: Pet): number | null {
   if (pet.form === "egg") return null;
+  if (pet.checkPoopAt != null) return null;
   const interval = POOP_INTERVAL_MIN[pet.form] * 60 * 1000;
   const { wake, sleep } = schedule(pet);
   return addAwakeMs(pet.poopAt, interval, wake, sleep);
+}
+
+/** ROM "base time to sickness" — once per stage, not random. Awake minutes from stage start. */
+export function nextSicknessAt(pet: Pet): number | null {
+  if (pet.form === "egg" || pet.sick || pet.stageSickDone || pet.checkSickAt != null) return null;
+  const min = stats(pet).sicknessMin;
+  if (!Number.isFinite(min) || min >= 9000) return null;
+  const { wake, sleep } = schedule(pet);
+  return addAwakeMs(pet.stageStartedAt, min * 60 * 1000, wake, sleep);
+}
+
+export function remainingDiscDrops(pet: Pet): number | null {
+  const c = stats(pet).disciplineCountdown;
+  if (c == null) return null;
+  if (pet.firmware === "vintage" && pet.discipline >= 100) return null;
+  if (pet.checkDiscAt != null || pet.misbehaveAt != null) return 0;
+  return Math.max(0, c - pet.heartDecrements);
 }
 
 export function evolutionDueAt(pet: Pet): number | null {
@@ -215,13 +258,13 @@ function evolve(pet: Pet, at: number): Pet {
     return p;
   }
   if (p.form === "marutchi") {
-    const kind = teenFromMistakes(p.careMistakes, p.discMistakes);
+    const kind = teenKindNow(p);
     p.teenKind = kind;
     p.form = teenCharacter(kind);
     p.discipline = kind.endsWith("t1") ? Math.max(p.discipline, 50) : p.discipline;
   } else if (p.form === "tamatchi" || p.form === "kuchitamatchi") {
-    const kind = p.teenKind ?? teenFromMistakes(p.careMistakes, p.discMistakes);
-    p.form = adultFrom(kind, p.careMistakes, p.discMistakes, p.region);
+    const kind = teenKindNow(p);
+    p.form = adultFrom(kind, p.careMistakes, discForEvo(p), p.region);
     p.secretEligible = canBecomeSecret(kind, p.form);
   } else {
     p.form = next;
@@ -232,6 +275,11 @@ function evolve(pet: Pet, at: number): Pet {
   p.medicineGiven = 0;
   p.heartDecrements = 0;
   p.misbehaveAt = null;
+  p.checkPoopAt = null;
+  p.checkSickAt = null;
+  p.checkDiscAt = null;
+  p.stageSickDone = false;
+  p.snackCount = 0;
   p.hungerAt = at;
   p.happyAt = at;
   p.sleeping = isSleepingAt(at, s.wakeHour, s.sleepHour);
@@ -248,10 +296,14 @@ function countCareMiss(pet: Pet, at: number, reason: string): Pet {
 function countDiscMiss(pet: Pet, at: number): Pet {
   let p: Pet = {
     ...pet,
-    discMistakes: pet.discMistakes + 1,
     misbehaveAt: null,
+    checkDiscAt: null,
     heartDecrements: 0,
   };
+  if (p.firmware === "vintage") {
+    return pushEvent(p, "miss-disc", at, "Vintage: ignored scold does not add a discipline mistake");
+  }
+  p = { ...p, discMistakes: pet.discMistakes + 1 };
   p = pushEvent(p, "miss-disc", at, "Ignored a misbehave call", { total: p.discMistakes });
   return p;
 }
@@ -272,11 +324,16 @@ function dropHeart(pet: Pet, meter: "hunger" | "happy", at: number): Pet {
   if (
     s.disciplineCountdown != null &&
     p.misbehaveAt == null &&
+    p.checkDiscAt == null &&
     p.hunger > 0 &&
     p.happy > 0 &&
     p.heartDecrements >= s.disciplineCountdown
   ) {
-    p.misbehaveAt = at;
+    if (p.firmware === "vintage" && p.discipline >= 100) {
+      p.heartDecrements = 0;
+    } else {
+      p.checkDiscAt = at;
+    }
   }
   return p;
 }
@@ -292,10 +349,9 @@ function applyTimePoint(pet: Pet, at: number): Pet {
 
   if (p.form === "babytchi") {
     const sinceHatch = at - p.hatchAt;
-    if (sinceHatch >= BABY_POOP_MS && p.poop === 0 && p.events.every((e) => e.type !== "poop")) {
-      p.poop = 1;
-      p.poopAt = at;
-      p = pushEvent(p, "poop", at, "First poop");
+    if (sinceHatch >= BABY_POOP_MS && p.poop === 0 && p.checkPoopAt == null && p.events.every((e) => e.type !== "poop" && e.type !== "confirm")) {
+      p.checkPoopAt = at;
+      p = pushEvent(p, "poop", at, "First poop is due — look at the shell");
     }
     if (sinceHatch >= BABY_NAP_MS && p.age === 0) {
       p.age = 1;
@@ -329,26 +385,18 @@ function applyTimePoint(pet: Pet, at: number): Pet {
   ) {
     p = countCareMiss(p, at, "Did not turn the lights off");
     p.sleepWindowAt = null;
-    p.lastTickAt = at;
-    return p;
   }
 
   if (p.hungerWindowAt != null && at - p.hungerWindowAt >= CARE_WINDOW_MS) {
     p = countCareMiss(p, at, "Missed a hunger call");
     p.hungerWindowAt = null;
-    p.lastTickAt = at;
-    return p;
   }
   if (p.happyWindowAt != null && at - p.happyWindowAt >= CARE_WINDOW_MS) {
     p = countCareMiss(p, at, "Missed a happy call");
     p.happyWindowAt = null;
-    p.lastTickAt = at;
-    return p;
   }
   if (p.misbehaveAt != null && at - p.misbehaveAt >= CARE_WINDOW_MS) {
     p = countDiscMiss(p, at);
-    p.lastTickAt = at;
-    return p;
   }
 
   if (!p.sleeping) {
@@ -356,27 +404,20 @@ function applyTimePoint(pet: Pet, at: number): Pet {
     const hungerDue = nextDrainAt(p.hungerAt, p.hunger, hungerLossMin(p.form, p.age), wake, sleep);
     if (hungerDue != null && at >= hungerDue) {
       p = dropHeart(p, "hunger", at);
-      p.lastTickAt = at;
-      return p;
     }
     const happyDue = nextDrainAt(p.happyAt, p.happy, happyLossMin(p.form, p.age), wake, sleep);
     if (happyDue != null && at >= happyDue) {
       p = dropHeart(p, "happy", at);
-      p.lastTickAt = at;
-      return p;
     }
     const poopDue = nextPoopAt(p);
-    if (poopDue != null && at >= poopDue && p.poop < 4) {
-      p.poop += 1;
-      p.poopAt = at;
-      p = pushEvent(p, "poop", at, `Poop ×${p.poop}`);
-      if (p.poop >= 4 && !p.sick) {
-        p.sick = true;
-        p.medicineGiven = 0;
-        p = pushEvent(p, "sick", at, "Four poops — got sick");
-      }
-      p.lastTickAt = at;
-      return p;
+    if (poopDue != null && at >= poopDue && p.poop < 4 && p.checkPoopAt == null) {
+      p.checkPoopAt = at;
+      p = pushEvent(p, "poop", at, "Poop is due — look at the shell (no beep)");
+    }
+    const sickDue = nextSicknessAt(p);
+    if (sickDue != null && at >= sickDue && p.checkSickAt == null) {
+      p.checkSickAt = at;
+      p = pushEvent(p, "sick", at, "Scheduled skull — look at the shell (no beep)");
     }
   }
 
@@ -408,6 +449,8 @@ function nextEventAt(pet: Pet, from: number): number | null {
     if (hp != null) candidates.push(hp);
     const po = nextPoopAt(pet);
     if (po != null) candidates.push(po);
+    const sk = nextSicknessAt(pet);
+    if (sk != null) candidates.push(sk);
   }
 
   if (pet.form === "babytchi") {
@@ -423,7 +466,7 @@ function nextEventAt(pet: Pet, from: number): number | null {
 }
 
 export function catchUp(pet: Pet, now: number): Pet {
-  let p: Pet = { ...pet, events: [...pet.events] };
+  let p: Pet = { ...normalizePet(pet), events: [...pet.events] };
   if (now <= p.lastTickAt) {
     p.lastTickAt = now;
     return p;
@@ -470,11 +513,21 @@ export function applyAction(pet: Pet, type: ActionType, at: number): Pet {
       p.weight = Math.min(s.maxWeight, p.weight + 2);
       p.snackCount += 1;
       const warn =
-        (p.form === "marutchi" || p.form === "tamatchi" || p.form === "kuchitamatchi") &&
+        p.firmware === "replica" &&
+        (p.form === "babytchi" || p.form === "marutchi" || p.form === "tamatchi" || p.form === "kuchitamatchi") &&
         p.snackCount >= 4
-          ? " Too many snacks can sicken a child/teen."
+          ? " Replica: too many snacks can sicken a child/teen. Look for a skull."
           : "";
       p = pushEvent(p, "snack", at, `Snack · happy ${p.happy}/4 · ${p.weight}g.${warn}`);
+      if (
+        p.firmware === "replica" &&
+        (p.form === "marutchi" || p.form === "tamatchi" || p.form === "kuchitamatchi") &&
+        p.snackCount >= 4 &&
+        !p.sick &&
+        p.checkSickAt == null
+      ) {
+        p.checkSickAt = at;
+      }
       return p;
     }
     case "game": {
@@ -494,6 +547,7 @@ export function applyAction(pet: Pet, type: ActionType, at: number): Pet {
       const had = p.poop;
       p.poop = 0;
       p.poopAt = at;
+      p.checkPoopAt = null;
       p = pushEvent(p, "clean", at, had ? `Cleaned ${had} poop${had === 1 ? "" : "s"}` : "Cleaned — nothing there");
       return p;
     }
@@ -501,6 +555,7 @@ export function applyAction(pet: Pet, type: ActionType, at: number): Pet {
       const from = p.discipline;
       p.discipline = Math.min(100, p.discipline + 25);
       p.misbehaveAt = null;
+      p.checkDiscAt = null;
       p.heartDecrements = 0;
       p = pushEvent(p, "scold", at, `Scolded · discipline ${p.discipline}%`, { from, to: p.discipline });
       return p;
@@ -511,6 +566,8 @@ export function applyAction(pet: Pet, type: ActionType, at: number): Pet {
       if (p.medicineGiven >= s.shots) {
         p.sick = false;
         p.medicineGiven = 0;
+        p.checkSickAt = null;
+        p.stageSickDone = true;
         p = pushEvent(p, "heal", at, "Recovered");
       } else {
         p = pushEvent(p, "medicine", at, `Medicine ${p.medicineGiven}/${s.shots}`);
@@ -576,20 +633,54 @@ export function undoLastCare(pet: Pet): Pet {
 
 /** Shell does not show this. Clears the icon without a scold, shot, or duck. */
 export function dismissOffShell(pet: Pet, kind: "poop" | "sick" | "discipline", at = Date.now()): Pet {
-  const p: Pet = { ...pet, lastTickAt: at };
+  const p: Pet = { ...normalizePet(pet), lastTickAt: at };
   if (kind === "poop") {
     p.poop = 0;
     p.poopAt = at;
-    return pushEvent(p, "sync", at, "Cleared poop — not on the shell");
+    p.checkPoopAt = null;
+    return pushEvent(p, "sync", at, "No poop on the shell — next check from now");
   }
   if (kind === "sick") {
     p.sick = false;
     p.medicineGiven = 0;
-    return pushEvent(p, "sync", at, "Cleared sick — not on the shell");
+    p.checkSickAt = null;
+    p.stageSickDone = true;
+    return pushEvent(p, "sync", at, "No skull on the shell");
   }
   p.misbehaveAt = null;
+  p.checkDiscAt = null;
   p.heartDecrements = 0;
-  return pushEvent(p, "sync", at, "Cleared attention — not on the shell");
+  return pushEvent(p, "sync", at, "No attention on the shell");
+}
+
+/** User looked: the shell matches the prediction. Starts the real 15-min window for discipline. */
+export function confirmOnShell(pet: Pet, kind: "poop" | "sick" | "discipline", at = Date.now()): Pet {
+  let p: Pet = { ...normalizePet(pet), lastTickAt: at };
+  if (kind === "poop") {
+    p.poop = Math.min(4, p.poop + 1);
+    p.poopAt = at;
+    p.checkPoopAt = null;
+    p = pushEvent(p, "confirm", at, `Poop on the shell ×${p.poop}`);
+    if (p.poop >= 4 && !p.sick) {
+      p.sick = true;
+      p.medicineGiven = 0;
+      p.stageSickDone = true;
+      p.checkSickAt = null;
+      p = pushEvent(p, "sick", at, "Four poops — skull");
+    }
+    return p;
+  }
+  if (kind === "sick") {
+    p.sick = true;
+    p.medicineGiven = 0;
+    p.checkSickAt = null;
+    p.stageSickDone = true;
+    return pushEvent(p, "confirm", at, "Skull on the shell");
+  }
+  p.checkDiscAt = null;
+  p.misbehaveAt = at;
+  p.heartDecrements = 0;
+  return pushEvent(p, "confirm", at, "Attention on the shell — 15 min to scold");
 }
 
 export function syncPet(
@@ -644,7 +735,7 @@ export function syncPet(
     p.weight = Math.max(p.weight, statsFor(p.form).minWeight);
   }
   if (p.form === "tamatchi" || p.form === "kuchitamatchi") {
-    p.teenKind = teenFromMistakes(p.careMistakes, p.discMistakes);
+    p.teenKind = teenKindNow(p);
   }
   const note = formChanged
     ? `Matched ${statsFor(p.form).name} · mistakes carry over`
@@ -677,6 +768,7 @@ export function derive(pet: Pet, now: number): DerivedState {
     ? null
     : nextDrainAt(p.happyAt, p.happy, happyLossMin(p.form, p.age), wake, sleep);
   const poopAt = nextPoopAt(p);
+  const sickAt = nextSicknessAt(p);
   const evoAt = evolutionDueAt(p);
   const slAt = nextSleepAt(now, wake, sleep);
   const wkAt = nextWakeAt(now, wake, sleep);
@@ -774,37 +866,67 @@ export function derive(pet: Pet, now: number): DerivedState {
     });
   }
 
-  if (p.misbehaveAt != null) {
+  if (p.checkDiscAt != null) {
+    alerts.push({
+      id: "disc-due",
+      kind: "discipline",
+      title: "Check attention",
+      detail: "After enough heart drops the shell may light attention with hearts still showing. Look now. The 15-minute scold window starts only after you confirm it is on the shell.",
+      dueAt: p.checkDiscAt,
+      urgency: "now",
+      deviceHint: "Look, then Discipline if it is calling",
+    });
+  } else if (p.misbehaveAt != null) {
     const due = p.misbehaveAt + CARE_WINDOW_MS;
     alerts.push({
       id: "disc",
       kind: "discipline",
       title: "Misbehaving",
-      detail: "Attention is on but meters are not empty. Scold only if your target wants discipline — and only if the shell is actually calling. If not, tap Not on the shell.",
+      detail: "Attention is on but meters are not empty. Scold only if your target wants discipline.",
       dueAt: due,
       urgency: urgencyFor(due, now, true),
       deviceHint: "Discipline icon  (B)",
     });
   }
 
-  if (p.poop > 0) {
+  if (p.checkPoopAt != null) {
+    alerts.push({
+      id: "poop-due",
+      kind: "poop",
+      title: "Look for poop",
+      detail: "Poop is due on a timer — not random. The device will not beep. Confirm if it is on the screen.",
+      dueAt: p.checkPoopAt,
+      urgency: "now",
+      deviceHint: "Duck icon  (B)",
+    });
+  } else if (p.poop > 0) {
     alerts.push({
       id: "poop",
       kind: "poop",
       title: p.poop >= 3 ? "Poop piling up" : "Needs a clean",
-      detail: `${p.poop} on screen. The device will not beep. If the shell is clean, tap Not on the shell.`,
+      detail: `${p.poop} on screen. Four at once makes a skull. Clean with the duck.`,
       dueAt: now,
       urgency: p.poop >= 3 ? "now" : "soon",
       deviceHint: "Duck icon  (B)",
     });
   }
 
-  if (p.sick) {
+  if (p.checkSickAt != null) {
+    alerts.push({
+      id: "sick-due",
+      kind: "sick",
+      title: "Look for a skull",
+      detail: "Each form has a ROM sickness timer (not random), plus four poops or too many snacks. No beep.",
+      dueAt: p.checkSickAt,
+      urgency: "now",
+      deviceHint: "Syringe icon  (B)",
+    });
+  } else if (p.sick) {
     alerts.push({
       id: "sick",
       kind: "sick",
       title: "Sick",
-      detail: `Skull icon. Give medicine ${s.shots} time${s.shots === 1 ? "" : "s"} on the shell. No beep. If there is no skull, tap Not on the shell.`,
+      detail: `Skull icon. Give medicine ${s.shots} time${s.shots === 1 ? "" : "s"} on the shell. No beep.`,
       dueAt: now,
       urgency: "now",
       deviceHint: "Syringe icon  (B)",
@@ -835,12 +957,14 @@ export function derive(pet: Pet, now: number): DerivedState {
     nextHungerDrainAt,
     nextHappyDrainAt,
     nextPoopAt: poopAt,
+    nextSicknessAt: sickAt,
+    remainingDiscDrops: remainingDiscDrops(p),
     nextEvolveAt: evoAt,
     nextSleepAt: slAt,
     nextWakeAt: wkAt,
     alerts,
     primary,
-    predictedTeen: p.form === "marutchi" || p.form === "babytchi" || p.form === "egg" ? teenFromMistakes(p.careMistakes, p.discMistakes) : p.teenKind,
+    predictedTeen: p.form === "marutchi" || p.form === "babytchi" || p.form === "egg" ? teenKindNow(p) : p.teenKind,
     predictedAdult: p.form === "maskutchi" && p.secretEligible ? secretForRegion(p.region) : predictedAdult(p),
     onTarget: onTarget(p),
     pathStatus: pathStatus(p),

@@ -1,14 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import { asset } from "@/lib/asset";
 import { disarmAudio, isAudioUnlocked, playCall, subscribeAudioUnlock } from "@/lib/audio";
+import { chirpCopy } from "@/lib/care-copy";
 import {
-  CHIRP_LABEL,
   chirpEvents,
   snapshotFromPet,
   type ChirpEvent,
   type ChirpSnapshot,
 } from "@/lib/tama/chirps";
 import type { Pet } from "@/lib/tama/types";
+import { useLocaleStore } from "@/store/locale-store";
 
 function buzz(kind: ChirpEvent["kind"]) {
   if (typeof navigator === "undefined" || !navigator.vibrate) return;
@@ -22,7 +23,8 @@ function buzz(kind: ChirpEvent["kind"]) {
 function notify(event: ChirpEvent, enabled: boolean) {
   if (!enabled) return;
   if (typeof Notification === "undefined" || Notification.permission !== "granted") return;
-  const copy = CHIRP_LABEL[event.kind][event.alertKind];
+  const locale = useLocaleStore.getState().locale;
+  const copy = chirpCopy(locale, event.kind, event.alertKind);
   const opts: NotificationOptions = {
     body: copy.body,
     tag: `hatchwatch-${event.kind}-${event.alertKind}`,
@@ -51,7 +53,13 @@ function notify(event: ChirpEvent, enabled: boolean) {
 
 function windowOpen(pet: Pet) {
   return Boolean(
-    pet.hungerWindowAt || pet.happyWindowAt || pet.sleepWindowAt || pet.misbehaveAt,
+    pet.hungerWindowAt ||
+      pet.happyWindowAt ||
+      pet.sleepWindowAt ||
+      pet.misbehaveAt ||
+      pet.checkPoopAt ||
+      pet.checkSickAt ||
+      pet.checkDiscAt,
   );
 }
 

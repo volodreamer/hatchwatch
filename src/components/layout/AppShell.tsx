@@ -1,16 +1,18 @@
 import type { ReactNode } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { BookOpen, Clock, Home, ListTree } from "lucide-react";
+import { useI18n } from "@/hooks/use-i18n";
 import { cn } from "@/lib/utils";
 
 const NAV = [
-  { to: "/", label: "Home", icon: Home },
-  { to: "/plan", label: "Plan", icon: ListTree },
-  { to: "/log", label: "Log", icon: Clock },
-  { to: "/guide", label: "Guide", icon: BookOpen },
+  { to: "/", key: "nav.home", icon: Home },
+  { to: "/plan", key: "nav.plan", icon: ListTree },
+  { to: "/log", key: "nav.log", icon: Clock },
+  { to: "/guide", key: "nav.guide", icon: BookOpen },
 ] as const;
 
 export function AppShell({ children }: { children: ReactNode }) {
+  const { t } = useI18n();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   return (
@@ -31,7 +33,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                   )}
                 >
                   <Icon className="size-5" strokeWidth={active ? 2.2 : 1.7} />
-                  {item.label}
+                  {t(item.key)}
                 </Link>
               </li>
             );

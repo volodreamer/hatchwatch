@@ -1,4 +1,4 @@
-import type { Pet } from "./types";
+import type { Pet } from "./types.ts";
 
 /** Keep in sync with CARE_WINDOW_MS in characters.ts */
 const CARE_WINDOW_MS = 15 * 60 * 1000;
@@ -6,7 +6,7 @@ const CARE_WINDOW_MS = 15 * 60 * 1000;
 export const WARN_LEAD_MS = 2 * 60 * 1000;
 
 export type ChirpKind = "drop" | "warn";
-export type ChirpAlertKind = "hunger" | "happy" | "lights" | "discipline";
+export type ChirpAlertKind = "hunger" | "happy" | "lights" | "discipline" | "poop" | "sick";
 
 export interface ChirpSnapshot {
   now: number;
@@ -18,6 +18,9 @@ export interface ChirpSnapshot {
   happyWindowAt: number | null;
   sleepWindowAt: number | null;
   misbehaveAt: number | null;
+  checkPoopAt: number | null;
+  checkSickAt: number | null;
+  checkDiscAt: number | null;
 }
 
 export interface ChirpEvent {
@@ -37,6 +40,9 @@ export function snapshotFromPet(pet: Pet, now: number): ChirpSnapshot {
     happyWindowAt: pet.happyWindowAt,
     sleepWindowAt: pet.sleepWindowAt,
     misbehaveAt: pet.misbehaveAt,
+    checkPoopAt: pet.checkPoopAt,
+    checkSickAt: pet.checkSickAt,
+    checkDiscAt: pet.checkDiscAt,
   };
 }
 
@@ -52,10 +58,9 @@ function remaining(windowAt: number, now: number) {
 
 /**
  * Discrete care chirps — never a looping alarm.
- * - 3-note drop when a heart falls or a call window opens
+ * - 3-note drop when a heart falls, a call window opens, or a silent shell event is due
  * - 5-note warning once, 2 minutes before a 15-minute penalty
- * First snapshot never fires a drop (that call already happened). A warning
- * still fires if the app is opened inside the last two minutes.
+ * Poop and sickness never beep on the shell — the phone must.
  */
 export function chirpEvents(prev: ChirpSnapshot | null, next: ChirpSnapshot, fired: Set<string>): ChirpEvent[] {
   const events: ChirpEvent[] = [];
@@ -80,6 +85,15 @@ export function chirpEvents(prev: ChirpSnapshot | null, next: ChirpSnapshot, fir
     if (!prev.misbehaveAt && next.misbehaveAt) {
       pushUnique(drops, fired, { kind: "drop", alertKind: "discipline", key: `drop:disc:${next.misbehaveAt}` });
     }
+    if (!prev.checkDiscAt && next.checkDiscAt) {
+      pushUnique(drops, fired, { kind: "drop", alertKind: "discipline", key: `drop:disc-check:${next.checkDiscAt}` });
+    }
+    if (!prev.checkPoopAt && next.checkPoopAt) {
+      pushUnique(drops, fired, { kind: "drop", alertKind: "poop", key: `drop:poop:${next.checkPoopAt}` });
+    }
+    if (!prev.checkSickAt && next.checkSickAt) {
+      pushUnique(drops, fired, { kind: "drop", alertKind: "sick", key: `drop:sick:${next.checkSickAt}` });
+    }
   }
 
   if (drops.length) events.push(drops[0]);
@@ -99,12 +113,14 @@ export function chirpEvents(prev: ChirpSnapshot | null, next: ChirpSnapshot, fir
   return events;
 }
 
-export const CHIRP_LABEL: Record<ChirpKind, Record<ChirpAlertKind, { title: string; body: string }>> = {
+export const CHIRP_LABEL: Record<ChirpKind, Partial<Record<ChirpAlertKind, { title: string; body: string }>>> = {
   drop: {
     hunger: { title: "Hunger dropped", body: "A hunger heart just fell. Feed before the 15-minute call runs out." },
     happy: { title: "Happy dropped", body: "A happy heart just fell. Play a game before the call times out." },
     lights: { title: "It fell asleep", body: "Turn the lights off within 15 minutes." },
-    discipline: { title: "Misbehaving", body: "Attention is on. Scold only if your target needs it." },
+    discipline: { title: "Check attention", body: "Misbehave is due after heart drops — not random. Look at the shell." },
+    poop: { title: "Look for poop", body: "Poop is on a timer. The shell will not beep." },
+    sick: { title: "Look for a skull", body: "A sickness timer fired — not dice. The shell will not beep." },
   },
   warn: {
     hunger: { title: "2 minutes — hungry", body: "Feed a meal now or it is a care mistake." },

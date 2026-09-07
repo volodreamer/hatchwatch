@@ -1,24 +1,21 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { BackupPanel } from "@/components/care/BackupPanel";
 import { PixelSprite } from "@/components/lcd/PixelSprite";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { LangSwitch } from "@/components/ui/lang-switch";
+import { useI18n } from "@/hooks/use-i18n";
+import { planHeadline, planSteps } from "@/lib/care-copy";
 import { ADULT_IDS, CHARACTERS } from "@/lib/tama/characters";
 import { TARGET_PLANS } from "@/lib/tama/evolution";
-import type { AdultId } from "@/lib/tama/types";
+import type { AdultId, Firmware } from "@/lib/tama/types";
 import { cn, toDatetimeLocalValue } from "@/lib/utils";
 import { playTamaChirp } from "@/lib/audio";
-import { usePetStore } from "@/store/pet-store";
-
-const DIFF_LABEL: Record<string, string> = {
-  strict: "Strict",
-  precise: "Precise",
-  steady: "Steady",
-  lenient: "Lenient",
-  secret: "Secret",
-};
+import { peekSavedPet, recoverPetFromStorage, usePetStore } from "@/store/pet-store";
 
 export function SetupWizard() {
+  const { locale, t } = useI18n();
   const startRun = usePetStore((s) => s.startRun);
   const startDemo = usePetStore((s) => s.startDemo);
   const [step, setStep] = useState<1 | 2 | 3>(1);
@@ -27,8 +24,12 @@ export function SetupWizard() {
   const [custom, setCustom] = useState(toDatetimeLocalValue(Date.now()));
   const [nickname, setNickname] = useState("");
   const [region, setRegion] = useState<"en" | "jp">("en");
+  const [firmware, setFirmware] = useState<Firmware>("replica");
+  const [hasSaved, setHasSaved] = useState(false);
 
-  const plan = TARGET_PLANS[target];
+  useEffect(() => {
+    setHasSaved(peekSavedPet());
+  }, []);
 
   const hatchAt = useMemo(() => {
     const now = Date.now();
@@ -49,34 +50,50 @@ export function SetupWizard() {
       clockSetAt,
       targetId: target,
       region,
-      nickname: nickname || "My P1",
+      firmware,
+      nickname: nickname || t("setup.nick.ph"),
     });
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-lg flex-col gap-6 px-4 pb-10 pt-8">
+    <div className="relative z-10 mx-auto flex w-full max-w-lg flex-col gap-6 px-4 pb-10 pt-8">
       <header className="flex flex-col gap-2">
-        <p className="text-xs font-medium uppercase tracking-[0.22em] text-primary">Gen 1 companion</p>
+        <p className="text-xs font-medium uppercase tracking-[0.22em] text-primary">{t("setup.kicker")}</p>
         <h1 className="font-display text-4xl leading-none tracking-wide text-balance">Hatchwatch</h1>
-        <p className="max-w-md text-pretty text-muted">
-          Log the hatch, pick who you want, and we track hearts, discipline, and the 15-minute care window so the
-          device never beats you.
-        </p>
+        <p className="max-w-md text-pretty text-muted">{t("setup.blurb")}</p>
+        <div className="mt-2">
+          <LangSwitch />
+        </div>
       </header>
 
+      {hasSaved ? (
+        <div className="flex flex-col gap-2 rounded-xl bg-surface p-4 shadow-border">
+          <p className="font-display text-lg">{t("setup.resume")}</p>
+          <p className="text-sm text-pretty text-muted">{t("setup.resume.d")}</p>
+          <Button
+            className="w-full"
+            size="lg"
+            onClick={() => {
+              if (!recoverPetFromStorage()) setHasSaved(false);
+            }}
+          >
+            {t("setup.resume")}
+          </Button>
+        </div>
+      ) : null}
+
       <ol className="flex gap-2 text-xs font-medium uppercase tracking-[0.16em] text-faint">
-        <li className={cn(step === 1 && "text-primary")}>1 Character</li>
-        <li className={cn(step === 2 && "text-primary")}>2 Hatch</li>
-        <li className={cn(step === 3 && "text-primary")}>3 Confirm</li>
+        <li className={cn(step === 1 && "text-primary")}>{t("setup.step1")}</li>
+        <li className={cn(step === 2 && "text-primary")}>{t("setup.step2")}</li>
+        <li className={cn(step === 3 && "text-primary")}>{t("setup.step3")}</li>
       </ol>
 
       {step === 1 ? (
         <div className="flex flex-col gap-3">
-          <p className="text-sm text-muted">Who are you raising?</p>
+          <p className="text-sm text-muted">{t("setup.who")}</p>
           <div className="grid grid-cols-2 gap-2">
             {ADULT_IDS.map((id) => {
               const c = CHARACTERS[id];
-              const p = TARGET_PLANS[id];
               const active = target === id;
               return (
                 <button
@@ -84,7 +101,7 @@ export function SetupWizard() {
                   type="button"
                   onClick={() => setTarget(id)}
                   className={cn(
-                    "flex flex-col items-start gap-2 rounded-lg bg-surface p-3 text-left shadow-border transition-[box-shadow,transform] duration-[var(--motion-quick)] active:scale-[0.98]",
+                    "relative z-10 flex flex-col items-start gap-2 rounded-lg bg-surface p-3 text-left shadow-border transition-[box-shadow,transform] duration-[var(--motion-quick)] active:scale-[0.98]",
                     active && "ring-2 ring-primary",
                   )}
                 >
@@ -94,46 +111,46 @@ export function SetupWizard() {
                         <PixelSprite id={id} />
                       </span>
                     </span>
-                    <span className="text-xs uppercase tracking-widest text-muted">{DIFF_LABEL[p.difficulty]}</span>
+                    <span className="text-xs uppercase tracking-widest text-muted">{t(`diff.${TARGET_PLANS[id].difficulty}`)}</span>
                   </div>
                   <span className="font-display text-lg leading-none">{c.name}</span>
-                  <span className="text-xs text-pretty text-muted">{p.headline}</span>
+                  <span className="text-xs text-pretty text-muted">{planHeadline(locale, id)}</span>
                 </button>
               );
             })}
           </div>
           <Button className="mt-2 w-full" size="lg" onClick={() => setStep(2)}>
-            Continue
+            {t("setup.continue")}
           </Button>
         </div>
       ) : null}
 
       {step === 2 ? (
         <div className="flex flex-col gap-4">
-          <p className="text-sm text-muted">When did this life start?</p>
+          <p className="text-sm text-muted">{t("setup.when")}</p>
           <div className="grid gap-2">
             <Choice
               active={when === "hatched"}
-              title="It just hatched"
-              detail="Baby is out. Both meters start empty — feed immediately."
+              title={t("setup.hatched")}
+              detail={t("setup.hatched.d")}
               onClick={() => setWhen("hatched")}
             />
             <Choice
               active={when === "clock"}
-              title="I just set the clock"
-              detail="Egg hatches in about 5 minutes. We will count down."
+              title={t("setup.clock")}
+              detail={t("setup.clock.d")}
               onClick={() => setWhen("clock")}
             />
             <Choice
               active={when === "custom"}
-              title="I know the exact time"
-              detail="Use this if the run already started. Then match hearts on the home screen."
+              title={t("setup.custom")}
+              detail={t("setup.custom.d")}
               onClick={() => setWhen("custom")}
             />
           </div>
           {when === "custom" ? (
             <div className="flex flex-col gap-2">
-              <Label htmlFor="hatch-at">Hatch date and time</Label>
+              <Label htmlFor="hatch-at">{t("setup.hatchAt")}</Label>
               <Input
                 id="hatch-at"
                 type="datetime-local"
@@ -144,10 +161,10 @@ export function SetupWizard() {
           ) : null}
           <div className="flex gap-2">
             <Button variant="secondary" className="flex-1" onClick={() => setStep(1)}>
-              Back
+              {t("setup.back")}
             </Button>
             <Button className="flex-1" onClick={() => setStep(3)}>
-              Continue
+              {t("setup.continue")}
             </Button>
           </div>
         </div>
@@ -156,11 +173,11 @@ export function SetupWizard() {
       {step === 3 ? (
         <div className="flex flex-col gap-4">
           <div className="rounded-xl bg-surface p-4 shadow-border">
-            <p className="text-xs font-medium uppercase tracking-[0.16em] text-muted">Run plan</p>
+            <p className="text-xs font-medium uppercase tracking-[0.16em] text-muted">{t("setup.runPlan")}</p>
             <p className="mt-1 font-display text-2xl">{CHARACTERS[target].name}</p>
-            <p className="mt-1 text-sm text-pretty text-muted">{plan.headline}</p>
+            <p className="mt-1 text-sm text-pretty text-muted">{planHeadline(locale, target)}</p>
             <ul className="mt-3 flex flex-col gap-2 text-sm text-fg">
-              {plan.steps.slice(0, 3).map((s) => (
+              {planSteps(locale, target).slice(0, 3).map((s) => (
                 <li key={s} className="border-l-2 border-primary/40 pl-3 text-pretty">
                   {s}
                 </li>
@@ -168,40 +185,60 @@ export function SetupWizard() {
             </ul>
           </div>
           <div className="flex flex-col gap-2">
-            <Label htmlFor="nick">Nickname (optional)</Label>
+            <Label htmlFor="nick">{t("setup.nick")}</Label>
             <Input
               id="nick"
-              placeholder="My P1"
+              placeholder={t("setup.nick.ph")}
               value={nickname}
               onChange={(e) => setNickname(e.target.value)}
               maxLength={16}
             />
           </div>
           <div className="flex flex-col gap-2">
-            <Label>Shell language</Label>
+            <Label>{t("setup.shellLang")}</Label>
             <div className="grid grid-cols-2 gap-2">
               <Button
                 type="button"
                 variant={region === "en" ? "default" : "secondary"}
                 onClick={() => setRegion("en")}
               >
-                English (Bill)
+                {t("setup.shell.en")}
               </Button>
               <Button
                 type="button"
                 variant={region === "jp" ? "default" : "secondary"}
                 onClick={() => setRegion("jp")}
               >
-                Japanese (Oyajitchi)
+                {t("setup.shell.jp")}
               </Button>
             </div>
           </div>
+          <div className="flex flex-col gap-2">
+            <Label>{t("setup.fw")}</Label>
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                type="button"
+                variant={firmware === "replica" ? "default" : "secondary"}
+                onClick={() => setFirmware("replica")}
+              >
+                {t("setup.fw.replica")}
+              </Button>
+              <Button
+                type="button"
+                variant={firmware === "vintage" ? "default" : "secondary"}
+                onClick={() => setFirmware("vintage")}
+              >
+                {t("setup.fw.vintage")}
+              </Button>
+            </div>
+            <p className="text-sm text-pretty text-muted">{t("setup.fw.d")}</p>
+          </div>
           <div className="flex gap-2">
             <Button variant="secondary" className="flex-1" onClick={() => setStep(2)}>
-              Back
+              {t("setup.back")}
             </Button>
             <Button className="flex-1" onClick={submit}>
-              Start watching
+              {t("setup.start")}
             </Button>
           </div>
         </div>
@@ -213,10 +250,14 @@ export function SetupWizard() {
           playTamaChirp();
           startDemo();
         }}
-        className="text-center text-sm text-muted underline-offset-4 hover:text-fg hover:underline"
+        className="relative z-10 py-3 text-center text-sm text-muted underline-offset-4 hover:text-fg hover:underline"
       >
-        Preview a Marutchi run
+        {t("setup.demo")}
       </button>
+
+      <div className="relative z-10 border-t border-border pt-4">
+        <BackupPanel />
+      </div>
     </div>
   );
 }
@@ -237,7 +278,7 @@ function Choice({
       type="button"
       onClick={onClick}
       className={cn(
-        "rounded-lg bg-surface p-4 text-left shadow-border transition-[box-shadow] duration-[var(--motion-quick)]",
+        "relative z-10 rounded-lg bg-surface p-4 text-left shadow-border transition-[box-shadow] duration-[var(--motion-quick)]",
         active && "ring-2 ring-primary",
       )}
     >

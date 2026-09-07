@@ -1,4 +1,4 @@
-import type { AdultId, CharacterId, CharacterStats } from "./types";
+import type { AdultId, CharacterId, CharacterStats } from "./types.ts";
 
 export const CHARACTERS: Record<CharacterId, CharacterStats> = {
   egg: {
@@ -31,7 +31,7 @@ export const CHARACTERS: Record<CharacterId, CharacterStats> = {
     sleepHour: null,
     hungryLossMin: 3,
     happyLossMin: 4,
-    sicknessMin: 45,
+    sicknessMin: 33,
     shots: 2,
     minWeight: 5,
     maxWeight: 5,
@@ -41,7 +41,7 @@ export const CHARACTERS: Record<CharacterId, CharacterStats> = {
     bites: 4,
     gameWinPct: 50,
     lifespan: "65 min",
-    blurb: "Always becomes Marutchi. Hearts drain every 3–4 minutes. First poop around 15 minutes, a nap around 40. Care here does not change the next form.",
+    blurb: "Always becomes Marutchi. Hearts drain every 3–4 minutes. First poop at 15 minutes, again at 45. Skull around 33 minutes. Nap around 40. Care here does not change the next form.",
   },
   marutchi: {
     id: "marutchi",
@@ -316,7 +316,7 @@ export const BABY_NAP_MS = 40 * 60 * 1000;
 
 export const POOP_INTERVAL_MIN: Record<CharacterId, number> = {
   egg: 9999,
-  babytchi: 15,
+  babytchi: 30,
   marutchi: 90,
   tamatchi: 120,
   kuchitamatchi: 100,

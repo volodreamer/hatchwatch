@@ -15,6 +15,8 @@ export type CharacterId =
   | "oyajitchi"
   | "bill";
 
+export type Firmware = "vintage" | "replica";
+
 export type AdultId =
   | "mametchi"
   | "ginjirotchi"
@@ -46,7 +48,8 @@ export type ActionType =
   | "wake"
   | "hatch"
   | "sync"
-  | "nap";
+  | "nap"
+  | "confirm";
 
 export interface CareEvent {
   id: string;
@@ -85,6 +88,7 @@ export interface Pet {
   clockSetAt: number;
   targetId: AdultId;
   region: "en" | "jp";
+  firmware: Firmware;
   createdAt: number;
   lastTickAt: number;
 
@@ -114,6 +118,14 @@ export interface Pet {
   sleepWindowAt: number | null;
   misbehaveAt: number | null;
   heartDecrements: number;
+  /** Predicted poop — not yet confirmed on the shell. The device does not beep. */
+  checkPoopAt: number | null;
+  /** Predicted skull — ROM sickness timer, not RNG. Confirm on the shell. */
+  checkSickAt: number | null;
+  /** Predicted attention-with-hearts. Confirm before the 15-min scold window starts. */
+  checkDiscAt: number | null;
+  /** ROM fires one scheduled sickness per stage. */
+  stageSickDone: boolean;
 
   snackCount: number;
   events: CareEvent[];
@@ -141,6 +153,8 @@ export interface DerivedState {
   nextHungerDrainAt: number | null;
   nextHappyDrainAt: number | null;
   nextPoopAt: number | null;
+  nextSicknessAt: number | null;
+  remainingDiscDrops: number | null;
   nextEvolveAt: number | null;
   nextSleepAt: number | null;
   nextWakeAt: number | null;

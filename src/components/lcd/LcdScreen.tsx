@@ -1,14 +1,17 @@
 import type { DerivedState } from "@/lib/tama/types";
+import { useI18n } from "@/hooks/use-i18n";
 import { cn, pad2 } from "@/lib/utils";
 import { LcdText } from "./LcdText";
 import { PixelSprite, PoopPixels } from "./PixelSprite";
 import { DisciplineBar, HeartsRow } from "./HeartsRow";
 
 export function LcdScreen({ derived }: { derived: DerivedState }) {
+  const { t } = useI18n();
   const { pet, stats, now } = derived;
   const d = new Date(now);
   const urgent = derived.primary?.urgency === "now" || derived.primary?.urgency === "late";
   const lightsOff = pet.sleeping && !pet.lightsOn;
+  const stage = t(`stage.${stats.stage}`);
 
   return (
     <div
@@ -29,7 +32,7 @@ export function LcdScreen({ derived }: { derived: DerivedState }) {
       <div className="relative flex items-start justify-between gap-2">
         <div>
           <p className="font-pixel text-sm uppercase text-lcd-pixel/70">
-            {stats.stage} · age {pet.age}
+            {t("lcd.age", { stage, n: pet.age })}
           </p>
           <h2 className="font-display text-3xl leading-none">{stats.name}</h2>
         </div>
@@ -44,19 +47,19 @@ export function LcdScreen({ derived }: { derived: DerivedState }) {
           <PixelSprite id={pet.form} sleeping={pet.sleeping} sick={pet.sick} />
         </div>
         <div className="flex min-w-0 flex-1 flex-col gap-2 pb-1">
-          <HeartsRow label="Hungry" value={pet.hunger} />
-          <HeartsRow label="Happy" value={pet.happy} />
-          <DisciplineBar value={pet.discipline} />
+          <HeartsRow label={t("lcd.hungry")} value={pet.hunger} />
+          <HeartsRow label={t("lcd.happy")} value={pet.happy} />
+          <DisciplineBar value={pet.discipline} label={t("lcd.disc")} />
           <div className="flex items-center justify-between text-lcd-pixel/80">
             <span className="font-pixel text-sm tabular-nums">{pet.weight}g</span>
             {pet.sleeping && pet.lightsOn ? (
-              <span className="font-pixel text-sm text-danger">Lights</span>
+              <span className="font-pixel text-sm text-danger">{t("lcd.lights")}</span>
             ) : pet.sleeping ? (
-              <span className="font-pixel text-sm">Night</span>
+              <span className="font-pixel text-sm">{t("lcd.night")}</span>
             ) : pet.sick ? (
-              <span className="font-pixel text-sm">Sick</span>
+              <span className="font-pixel text-sm">{t("lcd.sick")}</span>
             ) : (
-              <span className="font-pixel text-sm">Awake</span>
+              <span className="font-pixel text-sm">{t("lcd.awake")}</span>
             )}
           </div>
         </div>
@@ -65,12 +68,12 @@ export function LcdScreen({ derived }: { derived: DerivedState }) {
       <div className="relative mt-2 grid grid-cols-[8rem_1fr] items-center gap-3">
         <PoopPixels count={pet.poop} />
         <div className="justify-self-end text-right">
-          {pet.misbehaveAt ? (
-            <span className="font-pixel text-sm uppercase">Attention</span>
+          {pet.misbehaveAt || pet.checkDiscAt ? (
+            <span className="font-pixel text-sm uppercase">{t("lcd.attn")}</span>
           ) : pet.sleeping && pet.lightsOn ? (
-            <span className="font-pixel text-sm uppercase text-danger">Lights on</span>
+            <span className="font-pixel text-sm uppercase text-danger">{t("lcd.on")}</span>
           ) : pet.sleeping ? (
-            <span className="font-pixel text-sm uppercase">Lights off</span>
+            <span className="font-pixel text-sm uppercase">{t("lcd.off")}</span>
           ) : (
             <span className="font-pixel text-sm uppercase text-lcd-pixel/50">{pet.nickname}</span>
           )}

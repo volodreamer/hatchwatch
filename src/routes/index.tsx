@@ -1,25 +1,23 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { HomeDashboard } from "@/components/care/HomeDashboard";
 import { AppShell } from "@/components/layout/AppShell";
+import { PetBoot } from "@/components/PersistGate";
 import { SetupWizard } from "@/components/setup/SetupWizard";
-import { usePetStore } from "@/store/pet-store";
 
 export const Route = createFileRoute("/")({ component: Home });
 
 function Home() {
-  const pet = usePetStore((s) => s.pet);
-
-  if (!pet) {
-    return (
-      <main className="mx-auto min-h-dvh w-full max-w-lg bg-bg text-fg">
-        <SetupWizard />
-      </main>
-    );
-  }
-
   return (
-    <AppShell>
-      <HomeDashboard />
-    </AppShell>
+    <PetBoot
+      empty={
+        <main className="relative z-10 mx-auto min-h-dvh w-full max-w-lg bg-bg text-fg">
+          <SetupWizard />
+        </main>
+      }
+    >
+      <AppShell>
+        <HomeDashboard />
+      </AppShell>
+    </PetBoot>
   );
 }

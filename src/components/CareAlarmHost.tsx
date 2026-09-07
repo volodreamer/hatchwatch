@@ -1,4 +1,5 @@
 import { useClock } from "@/hooks/use-clock";
+import { useNativeAlarms } from "@/hooks/use-native-alarms";
 import { useReminders } from "@/hooks/use-reminders";
 import { usePetStore } from "@/store/pet-store";
 
@@ -7,5 +8,6 @@ export function CareAlarmHost() {
   const pet = usePetStore((s) => s.pet);
   const now = useClock(1000);
   useReminders(pet, now, { notif: pet?.notifOn ?? false, sound: pet?.soundOn ?? true });
+  useNativeAlarms(pet, now);
   return null;
 }

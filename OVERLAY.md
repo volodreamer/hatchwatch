@@ -1,1 +1,0 @@
-Hatchwatch overlay marker

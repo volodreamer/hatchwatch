@@ -1,47 +1,52 @@
 import { Badge } from "@/components/ui/badge";
+import { useI18n } from "@/hooks/use-i18n";
+import { translateBudget, translateTip } from "@/lib/care-copy";
 import { CHARACTERS } from "@/lib/tama/characters";
 import { scoldAdvice } from "@/lib/tama/evolution";
 import type { DerivedState } from "@/lib/tama/types";
 import { cn } from "@/lib/utils";
 
 export function MistakeBudgetCard({ derived }: { derived: DerivedState }) {
+  const { locale, t } = useI18n();
   const { pet, budget, predictedAdult, pathStatus } = derived;
   const target = CHARACTERS[pet.targetId];
   const predicted = CHARACTERS[predictedAdult];
   const scold = scoldAdvice(pet);
   const badge =
-    pathStatus === "hit" ? "On target" : pathStatus === "path" ? "On path" : "Off path";
+    pathStatus === "hit" ? t("path.hit") : pathStatus === "path" ? t("path.path") : t("path.off");
   const badgeVariant = pathStatus === "hit" ? "ok" : pathStatus === "path" ? "lcd" : "warn";
 
   return (
     <section className="rounded-xl bg-surface p-4 shadow-border">
       <div className="flex items-center justify-between gap-2">
-        <p className="text-xs font-medium uppercase tracking-widest text-muted">Growth path</p>
+        <p className="text-xs font-medium uppercase tracking-widest text-muted">{t("path.title")}</p>
         <Badge variant={badgeVariant}>{badge}</Badge>
       </div>
       <p className="mt-2 font-display text-xl leading-tight">
-        Aiming for {target.name}
-        <span className="text-muted"> → heading {predicted.name}</span>
+        {t("path.aim", { name: target.name })}
+        <span className="text-muted">{t("path.heading", { name: predicted.name })}</span>
       </p>
-      <p className="mt-1 text-sm text-pretty text-muted">{budget.summary}</p>
+      <p className="mt-1 text-sm text-pretty text-muted">{translateBudget(locale, pet)}</p>
 
       <div className="mt-4 grid grid-cols-2 gap-2">
-        <Stat label="Care mistakes" value={String(budget.careUsed)} cap={budget.careMax} />
-        <Stat label="Discipline misses" value={String(budget.discUsed)} cap={budget.discMax} min={budget.discMin} />
+        <Stat label={t("path.care")} value={String(budget.careUsed)} cap={budget.careMax} minLabel={t("path.needMin")} />
+        <Stat
+          label={t("path.disc")}
+          value={String(budget.discUsed)}
+          cap={budget.discMax}
+          min={budget.discMin}
+          minLabel={t("path.needMin")}
+        />
       </div>
 
-      <p className="mt-4 text-sm text-pretty text-fg">{budget.stageTip}</p>
+      <p className="mt-4 text-sm text-pretty text-fg">{translateTip(locale, pet)}</p>
       <p
         className={cn(
           "mt-2 text-xs font-medium uppercase tracking-widest",
           scold === "scold" ? "text-ok" : scold === "ignore" ? "text-warn" : "text-muted",
         )}
       >
-        {scold === "scold"
-          ? "When it misbehaves: scold"
-          : scold === "ignore"
-            ? "When it misbehaves: let it timeout"
-            : "When it misbehaves: either is fine"}
+        {scold === "scold" ? t("path.scold") : scold === "ignore" ? t("path.ignore") : t("path.either")}
       </p>
     </section>
   );
@@ -52,11 +57,13 @@ function Stat({
   value,
   cap,
   min,
+  minLabel,
 }: {
   label: string;
   value: string;
   cap: number | null;
   min?: number | null;
+  minLabel: string;
 }) {
   return (
     <div className="rounded-md bg-surface-2 px-3 py-2">
@@ -65,7 +72,9 @@ function Stat({
         {value}
         {cap != null ? <span className="text-base text-muted"> / {cap}</span> : null}
       </p>
-      {min != null && min > 0 ? <p className="mt-1 text-xs text-muted">Need at least {min}</p> : null}
+      {min != null && min > 0 ? (
+        <p className="mt-1 text-xs text-muted">{minLabel.replace("{n}", String(min))}</p>
+      ) : null}
     </div>
   );
 }

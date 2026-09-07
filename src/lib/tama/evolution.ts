@@ -1,5 +1,5 @@
-import { CHARACTERS, displayName, secretForRegion } from "./characters";
-import type { AdultId, CharacterId, MistakeBudget, PathStatus, Pet, TargetPlan, TeenKind } from "./types";
+import { CHARACTERS, displayName, secretForRegion } from "./characters.ts";
+import type { AdultId, CharacterId, MistakeBudget, PathStatus, Pet, TargetPlan, TeenKind } from "./types.ts";
 
 export function teenFromMistakes(care: number, disc: number): TeenKind {
   const goodCare = care < 3;
@@ -12,6 +12,19 @@ export function teenFromMistakes(care: number, disc: number): TeenKind {
 
 export function teenCharacter(kind: TeenKind): CharacterId {
   return kind.startsWith("tamatchi") ? "tamatchi" : "kuchitamatchi";
+}
+
+/**
+ * Replica: hidden discipline-mistake counter (ignored scolds).
+ * Vintage: the visible bar is what evolution used — map empty pips to an equivalent miss count.
+ */
+export function discForEvo(pet: Pet): number {
+  if (pet.firmware === "vintage") return Math.max(0, Math.round((100 - pet.discipline) / 25));
+  return pet.discMistakes;
+}
+
+export function teenKindNow(pet: Pet): TeenKind {
+  return pet.teenKind ?? teenFromMistakes(pet.careMistakes, discForEvo(pet));
 }
 
 export function adultFrom(
@@ -48,12 +61,13 @@ export function canBecomeSecret(kind: TeenKind, adult: CharacterId): boolean {
 }
 
 export function predictedAdult(pet: Pet): CharacterId {
+  const disc = discForEvo(pet);
   if (pet.form === "egg" || pet.form === "babytchi" || pet.form === "marutchi") {
-    const kind = teenFromMistakes(pet.careMistakes, pet.discMistakes);
-    return adultFrom(kind, pet.careMistakes, pet.discMistakes, pet.region);
+    const kind = teenFromMistakes(pet.careMistakes, disc);
+    return adultFrom(kind, pet.careMistakes, disc, pet.region);
   }
-  const kind = pet.teenKind ?? teenFromMistakes(pet.careMistakes, pet.discMistakes);
-  const adult = adultFrom(kind, pet.careMistakes, pet.discMistakes, pet.region);
+  const kind = teenKindNow(pet);
+  const adult = adultFrom(kind, pet.careMistakes, disc, pet.region);
   if (
     (pet.form === "maskutchi" || adult === "maskutchi") &&
     canBecomeSecret(kind, "maskutchi") &&
@@ -210,13 +224,12 @@ export function planFor(id: AdultId): TargetPlan {
 export function mistakeBudget(pet: Pet): MistakeBudget {
   const plan = TARGET_PLANS[pet.targetId];
   const careUsed = pet.careMistakes;
-  const discUsed = pet.discMistakes;
+  const discUsed = discForEvo(pet);
   const careMax = plan.careMax;
   const discMin = plan.discMin;
   const discMax = plan.discMax;
   const careRemaining = careMax == null ? null : Math.max(0, careMax - careUsed);
-  const discRemaining =
-    discMax == null ? null : Math.max(0, discMax - discUsed);
+  const discRemaining = discMax == null ? null : Math.max(0, discMax - discUsed);
 
   let summary: string;
   if (careMax != null && careUsed > careMax) {
@@ -227,15 +240,14 @@ export function mistakeBudget(pet: Pet): MistakeBudget {
     const need = discMin - discUsed;
     summary =
       plan.scold === "never"
-        ? `Need ${need} more ignored misbehave call${need === 1 ? "" : "s"}. Do not scold.`
-        : `Need ${need} more discipline mistake${need === 1 ? "" : "s"} before adult evolution.`;
+        ? `Need ${need} more ignored misbehave calls. Do not scold.`
+        : `Need ${need} more discipline mistakes before adult evolution.`;
   } else if (careRemaining != null) {
-    summary = `${careRemaining} care mistake${careRemaining === 1 ? "" : "s"} left in budget. Discipline ${discUsed}${discMax == null ? "+" : ` / ${discMax}`}.`;
+    const disc = `${discUsed}${discMax == null ? "+" : ` / ${discMax}`}`;
+    summary = `${careRemaining} care mistakes left in budget. Discipline ${disc}.`;
   } else {
     summary = `Care mistakes ${careUsed}. Discipline mistakes ${discUsed}.`;
   }
-
-  const stageTip = tipForStage(pet);
 
   return {
     careUsed,
@@ -246,7 +258,7 @@ export function mistakeBudget(pet: Pet): MistakeBudget {
     careRemaining,
     discRemaining,
     summary,
-    stageTip,
+    stageTip: tipForStage(pet),
   };
 }
 
@@ -274,12 +286,17 @@ function tipForStage(pet: Pet): string {
 
 export function onTarget(pet: Pet): boolean {
   const predicted = predictedAdult(pet);
+  const disc = discForEvo(pet);
   if (pet.targetId === "bill" || pet.targetId === "oyajitchi") {
-    const kind = pet.teenKind ?? teenFromMistakes(pet.careMistakes, pet.discMistakes);
+    const kind = teenKindNow(pet);
     if (pet.form === "egg" || pet.form === "babytchi" || pet.form === "marutchi") {
-      return kind === "tamatchi-t2" || teenFromMistakes(pet.careMistakes, pet.discMistakes) === "tamatchi-t2" || (pet.careMistakes < 3 && pet.discMistakes >= 3);
+      return kind === "tamatchi-t2" || (pet.careMistakes < 3 && disc >= 3);
     }
-    return canBecomeSecret(kind, predicted === "maskutchi" ? "maskutchi" : predicted) || predicted === pet.targetId || predicted === "maskutchi";
+    return (
+      canBecomeSecret(kind, predicted === "maskutchi" ? "maskutchi" : predicted) ||
+      predicted === pet.targetId ||
+      predicted === "maskutchi"
+    );
   }
   return predicted === pet.targetId;
 }
@@ -287,8 +304,9 @@ export function onTarget(pet: Pet): boolean {
 export function pathStatus(pet: Pet): PathStatus {
   if (onTarget(pet)) return "hit";
   const plan = TARGET_PLANS[pet.targetId];
+  const disc = discForEvo(pet);
   if (plan.careMax != null && pet.careMistakes > plan.careMax) return "off";
-  if (plan.discMax != null && pet.discMistakes > plan.discMax) return "off";
+  if (plan.discMax != null && disc > plan.discMax) return "off";
   const stage = CHARACTERS[pet.form].stage;
   if (stage === "adult" || stage === "secret") return "off";
   return "path";
@@ -296,15 +314,16 @@ export function pathStatus(pet: Pet): PathStatus {
 
 export function scoldAdvice(pet: Pet): "scold" | "ignore" | "either" {
   const plan = TARGET_PLANS[pet.targetId];
+  const disc = discForEvo(pet);
   if (plan.scold === "always") return "scold";
   if (plan.scold === "never") return "ignore";
   if (plan.scold === "once") {
-    if (pet.discMistakes < (plan.discMin ?? 1)) return "ignore";
+    if (disc < (plan.discMin ?? 1)) return "ignore";
     return "scold";
   }
-  const need = (plan.discMin ?? 0) - pet.discMistakes;
+  const need = (plan.discMin ?? 0) - disc;
   if (need > 0) return "ignore";
-  if (plan.discMax != null && pet.discMistakes >= plan.discMax) return "scold";
+  if (plan.discMax != null && disc >= plan.discMax) return "scold";
   return "either";
 }
 
@@ -312,11 +331,11 @@ export function nextFormAfter(pet: Pet): CharacterId | null {
   if (pet.form === "egg") return "babytchi";
   if (pet.form === "babytchi") return "marutchi";
   if (pet.form === "marutchi") {
-    return teenCharacter(teenFromMistakes(pet.careMistakes, pet.discMistakes));
+    return teenCharacter(teenFromMistakes(pet.careMistakes, discForEvo(pet)));
   }
   if (pet.form === "tamatchi" || pet.form === "kuchitamatchi") {
-    const kind = pet.teenKind ?? teenFromMistakes(pet.careMistakes, pet.discMistakes);
-    return adultFrom(kind, pet.careMistakes, pet.discMistakes, pet.region);
+    const kind = teenKindNow(pet);
+    return adultFrom(kind, pet.careMistakes, discForEvo(pet), pet.region);
   }
   if (pet.form === "maskutchi" && pet.secretEligible) {
     return secretForRegion(pet.region);

@@ -59,11 +59,11 @@ export function HeartsRow({
   );
 }
 
-export function DisciplineBar({ value }: { value: number }) {
+export function DisciplineBar({ value, label = "Disc" }: { value: number; label?: string }) {
   const filled = Math.min(4, Math.round(value / 25));
   return (
     <div className="flex items-center justify-between gap-3">
-      <span className="font-pixel text-sm uppercase text-lcd-pixel/80">Disc</span>
+      <span className="font-pixel text-sm uppercase text-lcd-pixel/80">{label}</span>
       <div className="flex items-center gap-1.5" aria-label={`Discipline ${value} percent`}>
         <span className="font-pixel text-sm tabular-nums">{value}</span>
         <div className="flex gap-0.5">

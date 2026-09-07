@@ -1,17 +1,27 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { BackupPanel } from "@/components/care/BackupPanel";
+import { LangSwitch } from "@/components/ui/lang-switch";
+import { useI18n } from "@/hooks/use-i18n";
 import { armAudio, disarmAudio, playCall } from "@/lib/audio";
+import { saveUrlFile } from "@/lib/backup";
+import { asset } from "@/lib/asset";
 import { requestNotifPermission, useAudioUnlocked } from "@/hooks/use-reminders";
 import { usePetStore } from "@/store/pet-store";
 import type { Pet } from "@/lib/tama/types";
 import { Bell, Volume2, VolumeX } from "lucide-react";
 import { toast } from "sonner";
 
-const BACKUP_KEY = "hatchwatch-v1";
+const GITHUB_REPO = "https://github.com/volodreamer/hatchwatch";
+const OVERLAY_ZIP = "hatchwatch-src-20260907.zip";
 
 export function SettingsSheet({ pet, onClose }: { pet: Pet; onClose: () => void }) {
+  const { t } = useI18n();
   const unlocked = useAudioUnlocked();
+  const [zipBusy, setZipBusy] = useState(false);
   const setNotif = usePetStore((s) => s.setNotif);
   const setSound = usePetStore((s) => s.setSound);
+  const setFirmware = usePetStore((s) => s.setFirmware);
   const reset = usePetStore((s) => s.reset);
   const armed = unlocked && pet.soundOn;
 
@@ -21,11 +31,7 @@ export function SettingsSheet({ pet, onClose }: { pet: Pet; onClose: () => void 
     if (typeof navigator !== "undefined" && navigator.vibrate) navigator.vibrate([80, 40, 120]);
     void requestNotifPermission().then((ok) => {
       setNotif(ok);
-      toast(
-        heard
-          ? "Beeps armed. 3 chirps on a drop, 5 chirps with 2 minutes left. Keep Hatchwatch open."
-          : "No chirp — turn media volume up (not just the ringer) and tap again.",
-      );
+      toast(heard ? t("set.armed") : t("set.noChirp"));
     });
   }
 
@@ -33,53 +39,44 @@ export function SettingsSheet({ pet, onClose }: { pet: Pet; onClose: () => void 
     armAudio();
     const ok = await requestNotifPermission();
     setNotif(ok);
-    toast(ok ? "Phone alerts on. Best if Hatchwatch stays open." : "Notifications blocked in the browser settings.");
-  }
-
-  async function copyBackup() {
-    const raw = localStorage.getItem(BACKUP_KEY);
-    if (!raw) {
-      toast("Nothing saved yet");
-      return;
-    }
-    try {
-      await navigator.clipboard.writeText(raw);
-      toast("Run copied. Paste it into a note.");
-    } catch {
-      window.prompt("Copy this backup", raw);
-    }
-  }
-
-  function restoreBackup() {
-    const text = window.prompt("Paste a Hatchwatch backup");
-    if (!text) return;
-    try {
-      const parsed = JSON.parse(text) as { state?: { pet?: Pet }; pet?: Pet };
-      const next = parsed.state?.pet ?? parsed.pet ?? (parsed as unknown as Pet);
-      if (!next || typeof next.hatchAt !== "number" || !next.form) {
-        throw new Error("bad backup");
-      }
-      usePetStore.setState({ pet: next });
-      localStorage.setItem(BACKUP_KEY, JSON.stringify({ state: { pet: next }, version: 0 }));
-      toast("Run restored");
-      onClose();
-    } catch {
-      toast("That backup could not be read");
-    }
+    toast(ok ? t("set.notifOn") : t("set.notifBlock"));
   }
 
   return (
     <div className="flex flex-col gap-5">
       <div>
-        <h2 className="font-display text-2xl">Settings</h2>
-        <p className="mt-1 text-sm text-pretty text-muted">
-          3 chirps when a heart drops. 5 lower chirps with 2 minutes left before a mistake.
-        </p>
+        <h2 className="font-display text-2xl">{t("set.title")}</h2>
+        <p className="mt-1 text-sm text-pretty text-muted">{t("set.lead")}</p>
       </div>
 
       <section className="flex flex-col gap-2">
-        <p className="text-xs font-medium uppercase tracking-widest text-muted">Sound</p>
-        <p className="text-sm text-muted">{armed ? "Listening for care calls." : "Beeps are off until you arm them."}</p>
+        <LangSwitch />
+      </section>
+
+      <section className="flex flex-col gap-2 border-t border-border pt-4">
+        <p className="text-xs font-medium uppercase tracking-widest text-muted">{t("setup.fw")}</p>
+        <div className="grid grid-cols-2 gap-2">
+          <Button
+            type="button"
+            variant={pet.firmware === "replica" ? "default" : "secondary"}
+            onClick={() => setFirmware("replica")}
+          >
+            {t("setup.fw.replica")}
+          </Button>
+          <Button
+            type="button"
+            variant={pet.firmware === "vintage" ? "default" : "secondary"}
+            onClick={() => setFirmware("vintage")}
+          >
+            {t("setup.fw.vintage")}
+          </Button>
+        </div>
+        <p className="text-sm text-pretty text-muted">{t("setup.fw.d")}</p>
+      </section>
+
+      <section className="flex flex-col gap-2 border-t border-border pt-4">
+        <p className="text-xs font-medium uppercase tracking-widest text-muted">{t("set.sound")}</p>
+        <p className="text-sm text-muted">{armed ? t("set.listening") : t("set.off")}</p>
         <div className="grid grid-cols-2 gap-2">
           {pet.soundOn && unlocked ? (
             <Button
@@ -88,22 +85,22 @@ export function SettingsSheet({ pet, onClose }: { pet: Pet; onClose: () => void 
               onClick={() => {
                 setSound(false);
                 disarmAudio();
-                toast("Beeps muted");
+                toast(t("set.muted"));
               }}
             >
               <VolumeX className="size-4" />
-              Mute
+              {t("set.mute")}
             </Button>
           ) : (
             <Button type="button" onClick={enableBeeps}>
               <Volume2 className="size-4" />
-              Arm beeps
+              {t("set.arm")}
             </Button>
           )}
           {!pet.notifOn ? (
             <Button type="button" variant="secondary" onClick={() => void enableNotifs()}>
               <Bell className="size-4" />
-              Alerts
+              {t("set.alerts")}
             </Button>
           ) : (
             <Button
@@ -111,11 +108,11 @@ export function SettingsSheet({ pet, onClose }: { pet: Pet; onClose: () => void 
               variant="secondary"
               onClick={() => {
                 setNotif(false);
-                toast("Alerts off");
+                toast(t("set.alertsOff"));
               }}
             >
               <Bell className="size-4" />
-              Alerts on
+              {t("set.alertsOn")}
             </Button>
           )}
         </div>
@@ -125,56 +122,71 @@ export function SettingsSheet({ pet, onClose }: { pet: Pet; onClose: () => void 
             variant="outline"
             onClick={() => {
               playCall("drop");
-              toast("Drop — 3 chirps");
+              toast(t("set.drop"));
             }}
           >
-            Test 3 chirps
+            {t("set.test3")}
           </Button>
           <Button
             type="button"
             variant="outline"
             onClick={() => {
               playCall("warn");
-              toast("Warning — 5 chirps");
+              toast(t("set.warn"));
             }}
           >
-            Test 5 chirps
+            {t("set.test5")}
           </Button>
         </div>
       </section>
 
       <section className="flex flex-col gap-2 border-t border-border pt-4">
-        <p className="text-xs font-medium uppercase tracking-widest text-muted">Backup</p>
-        <p className="text-sm text-pretty text-muted">
-          This run lives on this phone. Removing the home-screen icon does not delete it. Copy a backup before clearing site data.
-        </p>
-        <div className="flex gap-2">
-          <Button type="button" variant="outline" className="flex-1" onClick={() => void copyBackup()}>
-            Copy backup
-          </Button>
-          <Button type="button" variant="outline" className="flex-1" onClick={restoreBackup}>
-            Restore
-          </Button>
-        </div>
+        <BackupPanel onRestored={onClose} />
+        <p className="mt-2 text-xs font-medium uppercase tracking-widest text-muted">{t("set.zips")}</p>
+        <p className="text-sm text-pretty text-muted">{t("set.zipHint")}</p>
+        <Button
+          type="button"
+          disabled={zipBusy}
+          onClick={() => {
+            setZipBusy(true);
+            void saveUrlFile(asset(OVERLAY_ZIP), OVERLAY_ZIP)
+              .then((how) => {
+                if (how === "cancel") toast(t("set.zipFail"));
+                else toast(t("set.zipSaved"));
+              })
+              .catch(() => toast(t("set.zipFail")))
+              .finally(() => setZipBusy(false));
+          }}
+        >
+          {t("set.zip")}
+        </Button>
+        <a
+          href={GITHUB_REPO}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-sm text-muted underline-offset-4 hover:text-fg hover:underline"
+        >
+          github.com/volodreamer/hatchwatch
+        </a>
       </section>
 
       <section className="flex flex-col gap-2 border-t border-border pt-4">
         <button
           type="button"
           onClick={() => {
-            if (window.confirm("End this run? Logs will be cleared.")) {
+            if (window.confirm(t("set.end.q"))) {
               reset();
               onClose();
             }
           }}
           className="py-2 text-left text-sm text-muted underline-offset-4 hover:text-fg hover:underline"
         >
-          End run
+          {t("set.end")}
         </button>
       </section>
 
       <Button variant="secondary" onClick={onClose}>
-        Close
+        {t("set.close")}
       </Button>
     </div>
   );

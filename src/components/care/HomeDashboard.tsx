@@ -10,6 +10,7 @@ import { derive } from "@/lib/tama/simulate";
 import { formatDuration } from "@/lib/utils";
 import { useAudioUnlocked } from "@/hooks/use-reminders";
 import { useClock } from "@/hooks/use-clock";
+import { useI18n } from "@/hooks/use-i18n";
 import { usePetStore } from "@/store/pet-store";
 import type { ActionType } from "@/lib/tama/types";
 import { armAudio, playCall } from "@/lib/audio";
@@ -18,6 +19,7 @@ import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 
 export function HomeDashboard() {
+  const { t } = useI18n();
   const pet = usePetStore((s) => s.pet);
   const log = usePetStore((s) => s.log);
   const undo = usePetStore((s) => s.undo);
@@ -42,24 +44,21 @@ export function HomeDashboard() {
     log(type);
     if (type === "scold") {
       const next = usePetStore.getState().pet;
-      toast(`Discipline ${next?.discipline ?? 0}%`);
+      toast(t("home.discToast", { n: next?.discipline ?? 0 }));
     } else if (type === "lights-off") {
       if (!pet?.sleeping) {
-        toast("Lights off. It is awake — no sleep window.");
+        toast(t("home.lightsAwake"));
       } else if (!pet.lightsOn) {
-        toast("Lights were already off");
+        toast(t("home.lightsAlready"));
       } else {
-        toast("Lights OFF — 15 min window closed");
+        toast(t("home.lightsOff"));
       }
     } else {
-      const labels: Partial<Record<ActionType, string>> = {
-        meal: "Meal logged",
-        snack: "Snack logged",
-        game: "Game logged",
-        clean: "Cleaned",
-        medicine: "Medicine",
-      };
-      toast(labels[type] ?? "Logged");
+      const key =
+        type === "meal" || type === "snack" || type === "game" || type === "clean" || type === "medicine"
+          ? `home.logged.${type}`
+          : "home.logged";
+      toast(t(key));
     }
     if (typeof navigator !== "undefined" && navigator.vibrate) navigator.vibrate(20);
   }
@@ -74,13 +73,13 @@ export function HomeDashboard() {
           <h1 className="font-display text-2xl leading-none">{pet.nickname}</h1>
         </div>
         <div className="flex items-center gap-1">
-          <Button variant="ghost" size="icon" aria-label="Undo last" onClick={() => { undo(); toast("Undid last log"); }}>
+          <Button variant="ghost" size="icon" aria-label={t("home.undo")} onClick={() => { undo(); toast(t("home.undid")); }}>
             <Undo2 className="size-5" />
           </Button>
-          <Button variant="ghost" size="icon" aria-label="Match device" onClick={() => setSyncOpen(true)}>
+          <Button variant="ghost" size="icon" aria-label={t("home.match")} onClick={() => setSyncOpen(true)}>
             <SlidersHorizontal className="size-5" />
           </Button>
-          <Button variant="ghost" size="icon" asChild aria-label="Watch face">
+          <Button variant="ghost" size="icon" asChild aria-label={t("home.watch")}>
             <Link to="/watch">
               <Watch className="size-5" />
             </Link>
@@ -88,7 +87,7 @@ export function HomeDashboard() {
           <Button
             variant="ghost"
             size="icon"
-            aria-label="Settings"
+            aria-label={t("home.settings")}
             onClick={() => setSettingsOpen(true)}
             className={needsArm ? "text-primary" : undefined}
           >
@@ -103,32 +102,36 @@ export function HomeDashboard() {
           onClick={() => {
             const heard = playCall("drop");
             setSound(true);
-            toast(heard ? "Beeps armed — 3 on a drop, 5 at two minutes left." : "Turn media volume up and tap again.");
+            toast(heard ? t("home.armed") : t("home.armFail"));
           }}
           className="flex min-h-11 items-center justify-center gap-2 rounded-lg bg-primary px-3 text-sm font-medium text-primary-fg shadow-border"
         >
           <Volume2 className="size-4" />
-          Arm care beeps
+          {t("home.arm")}
         </button>
       ) : null}
 
       <LcdScreen derived={derived} />
       <NextCareCard
         derived={derived}
+        onOnShell={(kind) => {
+          usePetStore.getState().confirmOnShell(kind);
+          toast(t("home.onShell"));
+        }}
         onNotOnShell={(kind) => {
           usePetStore.getState().dismissOffShell(kind);
           toast(
             kind === "poop"
-              ? "Poop cleared — shell is clean"
+              ? t("home.poopOff")
               : kind === "sick"
-                ? "Skull cleared — not sick on the shell"
-                : "Attention cleared — no scold, no miss",
+                ? t("home.sickOff")
+                : t("home.discOff"),
           );
         }}
       />
       <ActionPad
         onLog={onLog}
-        attention={Boolean(derived.pet.misbehaveAt)}
+        attention={Boolean(derived.pet.misbehaveAt || derived.pet.checkDiscAt)}
         lightsHot={derived.pet.sleeping && derived.pet.lightsOn}
       />
       {missOpen ? (
@@ -138,20 +141,20 @@ export function HomeDashboard() {
             onClick={() => {
               log("miss-care");
               setMissOpen(false);
-              toast("Care mistake logged");
+              toast(t("home.careMiss"));
             }}
           >
-            Care mistake
+            {t("home.missCare")}
           </Button>
           <Button
             variant="outline"
             onClick={() => {
               log("miss-disc");
               setMissOpen(false);
-              toast("Discipline miss logged");
+              toast(t("home.discMiss"));
             }}
           >
-            Discipline miss
+            {t("home.missDisc")}
           </Button>
         </div>
       ) : null}
@@ -159,35 +162,67 @@ export function HomeDashboard() {
 
       <section className="grid grid-cols-2 gap-2">
         <Mini
-          label="Next hunger drop"
-          value={derived.nextHungerDrainAt ? formatDuration(derived.nextHungerDrainAt - now) : pet.hunger === 0 ? "Empty" : "—"}
+          label={t("home.nextHunger")}
+          value={derived.nextHungerDrainAt ? formatDuration(derived.nextHungerDrainAt - now) : pet.hunger === 0 ? t("home.empty") : "—"}
         />
         <Mini
-          label="Next happy drop"
-          value={derived.nextHappyDrainAt ? formatDuration(derived.nextHappyDrainAt - now) : pet.happy === 0 ? "Empty" : "—"}
+          label={t("home.nextHappy")}
+          value={derived.nextHappyDrainAt ? formatDuration(derived.nextHappyDrainAt - now) : pet.happy === 0 ? t("home.empty") : "—"}
         />
         <Mini
-          label="Sleep"
+          label={t("home.nextPoop")}
+          value={
+            derived.pet.checkPoopAt
+              ? t("care.check")
+              : derived.nextPoopAt
+                ? formatDuration(derived.nextPoopAt - now)
+                : "—"
+          }
+        />
+        <Mini
+          label={t("home.nextSick")}
+          value={
+            derived.pet.checkSickAt
+              ? t("care.check")
+              : derived.pet.sick
+                ? t("care.sick.t")
+                : derived.nextSicknessAt
+                  ? formatDuration(derived.nextSicknessAt - now)
+                  : "—"
+          }
+        />
+        <Mini
+          label={t("home.sleep")}
           value={
             pet.sleeping
               ? derived.nextWakeAt
-                ? `Wakes ${formatDuration(derived.nextWakeAt - now)}`
-                : "Asleep"
+                ? t("home.wakes", { d: formatDuration(derived.nextWakeAt - now) })
+                : t("home.asleep")
               : derived.nextSleepAt
                 ? formatDuration(derived.nextSleepAt - now)
-                : "Naps"
+                : t("home.naps")
           }
         />
-        <Mini label="Evolution" value={evoLeft != null && evoLeft > 0 ? formatDuration(evoLeft) : "—"} />
+        <Mini label={t("home.evo")} value={evoLeft != null && evoLeft > 0 ? formatDuration(evoLeft) : "—"} />
+        <Mini
+          label={t("home.nextDisc")}
+          value={
+            derived.remainingDiscDrops == null
+              ? t("home.discNone")
+              : derived.remainingDiscDrops === 0
+                ? t("home.discNow")
+                : t("home.discDrops", { n: derived.remainingDiscDrops })
+          }
+        />
       </section>
 
       {syncOpen ? (
-        <Overlay onClose={() => setSyncOpen(false)}>
+        <Overlay onClose={() => setSyncOpen(false)} closeLabel={t("home.close")}>
           <SyncSheet pet={derived.pet} onClose={() => setSyncOpen(false)} />
         </Overlay>
       ) : null}
       {settingsOpen ? (
-        <Overlay onClose={() => setSettingsOpen(false)}>
+        <Overlay onClose={() => setSettingsOpen(false)} closeLabel={t("home.close")}>
           <SettingsSheet pet={pet} onClose={() => setSettingsOpen(false)} />
         </Overlay>
       ) : null}
@@ -195,10 +230,10 @@ export function HomeDashboard() {
   );
 }
 
-function Overlay({ children, onClose }: { children: ReactNode; onClose: () => void }) {
+function Overlay({ children, onClose, closeLabel }: { children: ReactNode; onClose: () => void; closeLabel: string }) {
   return (
     <div className="fixed inset-0 z-40 flex items-end justify-center bg-bg/70 p-3 pt-16 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:items-center">
-      <button type="button" className="absolute inset-0 cursor-default" aria-label="Close" onClick={onClose} />
+      <button type="button" className="absolute inset-0 cursor-default" aria-label={closeLabel} onClick={onClose} />
       <div className="relative z-10 max-h-[90dvh] w-full max-w-lg overflow-y-auto rounded-xl bg-surface p-4 shadow-border">
         {children}
       </div>

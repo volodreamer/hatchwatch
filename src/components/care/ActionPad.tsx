@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { useI18n } from "@/hooks/use-i18n";
 import type { ActionType } from "@/lib/tama/types";
 import { cn } from "@/lib/utils";
 import {
@@ -14,18 +15,17 @@ import {
 
 const ACTIONS: {
   type: ActionType;
-  label: string;
-  hint: string;
+  key: string;
   icon: typeof Utensils;
 }[] = [
-  { type: "meal", label: "Meal", hint: "Food", icon: Utensils },
-  { type: "snack", label: "Snack", hint: "Food", icon: Cookie },
-  { type: "game", label: "Game", hint: "3 of 5", icon: Gamepad2 },
-  { type: "clean", label: "Clean", hint: "Duck", icon: Droplets },
-  { type: "scold", label: "Scold", hint: "Disc", icon: Bell },
-  { type: "medicine", label: "Heal", hint: "Shot", icon: Syringe },
-  { type: "lights-off", label: "Lights off", hint: "Off", icon: Moon },
-  { type: "miss-care", label: "Missed", hint: "Log", icon: X },
+  { type: "meal", key: "act.meal", icon: Utensils },
+  { type: "snack", key: "act.snack", icon: Cookie },
+  { type: "game", key: "act.game", icon: Gamepad2 },
+  { type: "clean", key: "act.clean", icon: Droplets },
+  { type: "scold", key: "act.scold", icon: Bell },
+  { type: "medicine", key: "act.medicine", icon: Syringe },
+  { type: "lights-off", key: "act.lights", icon: Moon },
+  { type: "miss-care", key: "act.miss", icon: X },
 ];
 
 export function ActionPad({
@@ -39,6 +39,7 @@ export function ActionPad({
   attention?: boolean;
   lightsHot?: boolean;
 }) {
+  const { t } = useI18n();
   return (
     <div className="grid grid-cols-4 gap-2">
       {ACTIONS.map((a) => {
@@ -58,7 +59,7 @@ export function ActionPad({
             )}
           >
             <Icon className="size-5" strokeWidth={1.7} />
-            <span className="text-xs font-medium">{a.label}</span>
+            <span className="text-xs font-medium">{t(a.key)}</span>
           </Button>
         );
       })}

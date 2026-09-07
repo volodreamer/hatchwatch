@@ -3,8 +3,8 @@
 
 @theme {
   --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Silkscreen", "Outfit", ui-sans-serif, sans-serif;
-  --font-pixel: "Silkscreen", "Outfit", ui-sans-serif, sans-serif;
+  --font-display: "Silkscreen", "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --font-pixel: "Silkscreen", "Outfit", ui-sans-serif, system-ui, sans-serif;
   --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 
   --color-bg: #0e120c;
@@ -76,6 +76,20 @@
     font-synthesis: none;
     -webkit-font-smoothing: none;
     -moz-osx-font-smoothing: unset;
+  }
+
+  html[lang="uk"] {
+    --font-display: "Outfit", ui-sans-serif, system-ui, sans-serif;
+    --font-pixel: "Outfit", ui-sans-serif, system-ui, sans-serif;
+  }
+
+  html[lang="uk"] .font-display,
+  html[lang="uk"] .font-pixel {
+    font-kerning: auto;
+    font-variant-ligatures: normal;
+    font-synthesis: weight;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   button:not(:disabled),
