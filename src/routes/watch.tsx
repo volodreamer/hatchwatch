@@ -42,11 +42,11 @@ function WatchFace() {
 
   return (
     <main className="flex min-h-dvh flex-col items-center justify-center bg-bg px-4 text-fg">
-      <div className={cn("lcd-bezel w-full max-w-xs rounded-2xl", urgent && "ring-4 ring-danger")}>
       <div
         className={cn(
-          "flex w-full flex-col items-center rounded-2xl bg-lcd p-6 text-lcd-pixel",
+          "flex w-full max-w-xs flex-col items-center rounded-2xl bg-lcd p-6 text-lcd-pixel shadow-[inset_0_0_0_2px_var(--color-lcd-stroke,var(--color-lcd-dim))]",
           pet.sleeping && !pet.lightsOn && "lcd-night",
+          urgent && "ring-4 ring-danger",
         )}
       >
         <p className="font-pixel text-sm uppercase">{derived.stats.name}</p>
@@ -62,7 +62,6 @@ function WatchFace() {
         <p className="mt-2 text-center font-pixel text-sm uppercase text-lcd-pixel/70">
           {copy?.hint ?? t("watch.stable")}
         </p>
-      </div>
       </div>
       <Link to="/" className="mt-6 text-sm text-muted underline-offset-4 hover:text-fg hover:underline">
         {t("watch.back")}

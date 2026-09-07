@@ -44,8 +44,6 @@
 html {
   --shell-pattern: none;
   --shell-pattern-size: auto;
-  --color-bezel: transparent;
-  --bezel-width: 0px;
 }
 
 html[data-theme="pink-yellow"] {
@@ -254,8 +252,7 @@ html[data-theme="garden-test"] {
   --color-danger: #e87880;
   --color-warn: #e0c06a;
   --color-ok: #7cd9a1;
-  --color-bezel: #ff3d9a;
-  --bezel-width: 5px;
+  --color-lcd-stroke: #ff3d9a;
   --shell-pattern:
     radial-gradient(ellipse at 18% 22%, rgb(124 217 161 / 0.22) 0 18px, transparent 19px),
     radial-gradient(ellipse at 78% 70%, rgb(255 61 154 / 0.28) 0 16px, transparent 17px),
@@ -364,11 +361,6 @@ html[data-theme="space-astronaut"] {
     radial-gradient(1px 1px at 8% 90%, #c8d8ff, transparent),
     radial-gradient(1px 1px at 90% 10%, #fff, transparent);
   --shell-pattern-size: 180px 180px;
-}
-
-.lcd-bezel {
-  background-color: var(--color-bezel);
-  padding: var(--bezel-width);
 }
 
 @layer base {

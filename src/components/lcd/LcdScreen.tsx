@@ -14,11 +14,11 @@ export function LcdScreen({ derived }: { derived: DerivedState }) {
   const stage = t(`stage.${stats.stage}`);
 
   return (
-    <div className={cn("lcd-bezel rounded-xl", urgent && "ring-2 ring-danger/70")}>
     <div
       className={cn(
-        "relative overflow-hidden rounded-lg bg-lcd p-3 text-lcd-pixel shadow-[inset_0_0_0_2px_var(--color-lcd-dim)]",
+        "relative overflow-hidden rounded-lg bg-lcd p-3 text-lcd-pixel shadow-[inset_0_0_0_2px_var(--color-lcd-stroke,var(--color-lcd-dim))]",
         lightsOff && "lcd-night",
+        urgent && "ring-2 ring-danger/70",
       )}
     >
       <div
@@ -79,7 +79,6 @@ export function LcdScreen({ derived }: { derived: DerivedState }) {
           )}
         </div>
       </div>
-    </div>
     </div>
   );
 }
