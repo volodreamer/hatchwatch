@@ -32,7 +32,7 @@ export function NextCareCard({
   if (!alert) {
     return (
       <section className="rounded-xl bg-surface p-4 shadow-border">
-        <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted">{t("care.next")}</p>
+        <p className="tile-kicker text-xs font-medium uppercase tracking-[0.18em] text-muted">{t("care.next")}</p>
         <p className="mt-1 font-display text-2xl text-fg">{t("care.clear")}</p>
         <p className="mt-1 text-sm text-muted">{t("care.clear.d")}</p>
       </section>
@@ -56,7 +56,7 @@ export function NextCareCard({
     >
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted">
+          <p className="tile-kicker text-xs font-medium uppercase tracking-[0.18em] text-muted">
             {alert.urgency === "late" ? t("care.missed") : alert.urgency === "now" ? t("care.now") : t("care.soon")}
           </p>
           <h2 className="mt-1 font-display text-2xl leading-tight text-balance">{copy.title}</h2>

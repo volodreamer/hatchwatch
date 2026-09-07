@@ -19,7 +19,7 @@ export function CharacterGuide() {
   return (
     <div className="flex flex-col gap-6">
       <header>
-        <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted">{t("guide.kicker")}</p>
+        <p className="tile-kicker text-xs font-medium uppercase tracking-[0.18em] text-muted">{t("guide.kicker")}</p>
         <h1 className="font-display text-3xl leading-none">{t("guide.title")}</h1>
         <p className="mt-2 text-pretty text-muted">{t("guide.lead")}</p>
       </header>

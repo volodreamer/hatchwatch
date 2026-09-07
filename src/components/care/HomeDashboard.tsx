@@ -244,7 +244,7 @@ function Overlay({ children, onClose, closeLabel }: { children: ReactNode; onClo
 function Mini({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-lg bg-surface px-3 py-2.5 shadow-border">
-      <p className="text-xs font-medium uppercase tracking-widest text-muted">{label}</p>
+      <p className="tile-kicker text-xs font-medium uppercase tracking-widest text-muted">{label}</p>
       <p className="font-display text-lg tabular-nums leading-tight">{value}</p>
     </div>
   );

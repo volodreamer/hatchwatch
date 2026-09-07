@@ -16,7 +16,7 @@ export function GrowthPath({ derived }: { derived: DerivedState }) {
   return (
     <div className="flex flex-col gap-5">
       <header>
-        <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted">{t("plan.kicker")}</p>
+        <p className="tile-kicker text-xs font-medium uppercase tracking-[0.18em] text-muted">{t("plan.kicker")}</p>
         <h1 className="font-display text-3xl leading-none">{plan.name}</h1>
         <p className="mt-2 text-pretty text-muted">{planHeadline(locale, derived.pet.targetId)}</p>
       </header>

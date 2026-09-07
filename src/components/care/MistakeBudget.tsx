@@ -19,7 +19,7 @@ export function MistakeBudgetCard({ derived }: { derived: DerivedState }) {
   return (
     <section className="rounded-xl bg-surface p-4 shadow-border">
       <div className="flex items-center justify-between gap-2">
-        <p className="text-xs font-medium uppercase tracking-widest text-muted">{t("path.title")}</p>
+        <p className="tile-kicker text-xs font-medium uppercase tracking-widest text-muted">{t("path.title")}</p>
         <Badge variant={badgeVariant}>{badge}</Badge>
       </div>
       <p className="mt-2 font-display text-xl leading-tight">
