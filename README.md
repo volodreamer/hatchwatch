@@ -66,5 +66,16 @@ For your own Gmail, keep the app in **Testing** and add that address as a test u
 
 ## Native Android
 
-Paused. Use the website for now.
+Jetpack Compose app in [`android/`](android/) — **not** a WebView. On the `android` branch (this branch), not Play Store yet.
+
+1. Install [Android Studio](https://developer.android.com/studio) (Ladybug / 2024.2+).
+2. Open the `android` folder (the one with `settings.gradle.kts`), not the website root.
+3. Sync Gradle (SDK 35, JDK 17). Plug in a phone with USB debugging (Android 8+) or an emulator. Run **app**.
+4. Allow **notifications** and **exact alarms** on first launch so poop / skull / attention still chirp when the app is closed.
+
+Same P1 engine as the website. File backup is the same `hatchwatch-v1` JSON — Save file here, Open file on the website (or the other way). Google Drive sign-in is website-only for now.
+
+Once the pet is an adult, the Growth path card locks to that form. Mistake counts stay visible.
+
+See [`android/README.md`](android/README.md).
 
