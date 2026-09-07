@@ -20,15 +20,18 @@ object AlarmScheduler {
     fun ensureChannel(context: Context) {
         if (Build.VERSION.SDK_INT < 26) return
         val mgr = context.getSystemService(NotificationManager::class.java) ?: return
-        if (mgr.getNotificationChannel(CHANNEL_ID) != null) return
+        val existing = mgr.getNotificationChannel(CHANNEL_ID)
+        if (existing != null && existing.importance >= NotificationManager.IMPORTANCE_HIGH) return
+        if (existing != null) mgr.deleteNotificationChannel(CHANNEL_ID)
         val attrs = AudioAttributes.Builder()
-            .setUsage(AudioAttributes.USAGE_ALARM)
+            .setUsage(AudioAttributes.USAGE_NOTIFICATION)
             .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
             .build()
         val ch = NotificationChannel(CHANNEL_ID, "Care chirps", NotificationManager.IMPORTANCE_HIGH).apply {
-            description = "Hunger, poop, skull, and attention — even when Hatchwatch is closed."
+            description = "Hunger, sleep, poop, skull, and attention — even when Hatchwatch is closed."
             setSound(android.provider.Settings.System.DEFAULT_NOTIFICATION_URI, attrs)
             enableVibration(true)
+            enableLights(true)
             setBypassDnd(true)
         }
         mgr.createNotificationChannel(ch)
@@ -49,12 +52,12 @@ object AlarmScheduler {
         val alarms = Simulate.upcomingAlarms(pet, now)
         val am = context.getSystemService(AlarmManager::class.java) ?: return
         alarms.take(MAX).forEachIndexed { i, alarm ->
-            if (alarm.at <= now) return@forEachIndexed
+            val whenAt = if (alarm.at <= now) now + 1_200L + i * 250L else alarm.at
             val pi = pending(context, i, alarm)
             try {
-                am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, alarm.at, pi)
+                am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, whenAt, pi)
             } catch (_: SecurityException) {
-                am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, alarm.at, pi)
+                am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, whenAt, pi)
             }
         }
     }

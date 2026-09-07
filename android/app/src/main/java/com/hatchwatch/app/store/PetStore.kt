@@ -19,6 +19,7 @@ object PetStore {
     private const val PREFS = "hatchwatch"
     private const val KEY_PET = "hatchwatch-v1"
     private const val KEY_LOCALE = "hatchwatch-locale"
+    private const val KEY_ALERTED = "hatchwatch-alerted"
 
     private val _pet = MutableStateFlow<Pet?>(null)
     val pet: StateFlow<Pet?> = _pet.asStateFlow()
@@ -39,7 +40,10 @@ object PetStore {
         }
         val savedLocale = prefs.getString(KEY_LOCALE, null)
         _locale.value = savedLocale ?: if (java.util.Locale.getDefault().language == "uk") "uk" else "en"
-        _pet.value?.let { AlarmScheduler.sync(ctx, it) }
+        _pet.value?.let {
+            AlarmScheduler.sync(ctx, it)
+            maybeAlert(it.copy(sleeping = false, sleepWindowAt = null), it)
+        }
     }
 
     private fun persist(next: Pet?) {
@@ -50,9 +54,20 @@ object PetStore {
         if (next != null) AlarmScheduler.sync(ctx, next) else AlarmScheduler.cancelAll(ctx)
     }
 
+    private fun alreadyAlerted(key: String): Boolean {
+        val ctx = app ?: return false
+        return ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(KEY_ALERTED, null) == key
+    }
+
+    private fun markAlerted(key: String) {
+        val ctx = app ?: return
+        ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putString(KEY_ALERTED, key).apply()
+    }
+
     private fun maybeAlert(prev: Pet, next: Pet) {
         val ctx = app ?: return
-        val sleepOpen = prev.sleepWindowAt == null && next.sleepWindowAt != null && next.lightsOn
+        val sleepOpen = (!prev.sleeping && next.sleeping && next.lightsOn) ||
+            (prev.sleepWindowAt == null && next.sleepWindowAt != null && next.lightsOn)
         val drop = next.hunger < prev.hunger ||
             next.happy < prev.happy ||
             (prev.hungerWindowAt == null && next.hungerWindowAt != null) ||
@@ -65,18 +80,51 @@ object PetStore {
         if (!drop) return
         if (next.soundOn) ChirpPlayer.play(ctx, false)
         if (!next.notifOn) return
-        val (title, body, kind) = when {
-            sleepOpen -> Triple("It fell asleep", "Turn the lights off within 15 minutes.", "lights")
-            next.hunger < prev.hunger || (prev.hungerWindowAt == null && next.hungerWindowAt != null) ->
-                Triple("Hunger dropped", "Feed a meal before the 15-minute call runs out.", "hunger")
-            next.happy < prev.happy || (prev.happyWindowAt == null && next.happyWindowAt != null) ->
-                Triple("Happy dropped", "Play a game before the call times out.", "happy")
-            prev.checkPoopAt == null && next.checkPoopAt != null ->
-                Triple("Look for poop", "The shell will not beep.", "poop")
-            prev.checkSickAt == null && next.checkSickAt != null ->
-                Triple("Look for a skull", "The shell will not beep.", "sick")
-            else -> Triple("Check attention", "Look at the shell.", "discipline")
+        val title: String
+        val body: String
+        val kind: String
+        val stamp: Long?
+        when {
+            sleepOpen -> {
+                title = "It fell asleep"
+                body = "Turn the lights off within 15 minutes."
+                kind = "lights"
+                stamp = next.sleepWindowAt
+            }
+            next.hunger < prev.hunger || (prev.hungerWindowAt == null && next.hungerWindowAt != null) -> {
+                title = "Hunger dropped"
+                body = "Feed a meal before the 15-minute call runs out."
+                kind = "hunger"
+                stamp = next.hungerWindowAt
+            }
+            next.happy < prev.happy || (prev.happyWindowAt == null && next.happyWindowAt != null) -> {
+                title = "Happy dropped"
+                body = "Play a game before the call times out."
+                kind = "happy"
+                stamp = next.happyWindowAt
+            }
+            prev.checkPoopAt == null && next.checkPoopAt != null -> {
+                title = "Look for poop"
+                body = "The shell will not beep."
+                kind = "poop"
+                stamp = next.checkPoopAt
+            }
+            prev.checkSickAt == null && next.checkSickAt != null -> {
+                title = "Look for a skull"
+                body = "The shell will not beep."
+                kind = "sick"
+                stamp = next.checkSickAt
+            }
+            else -> {
+                title = "Check attention"
+                body = "Look at the shell."
+                kind = "discipline"
+                stamp = next.misbehaveAt ?: next.checkDiscAt
+            }
         }
+        val key = "$kind:${stamp ?: 0}"
+        if (alreadyAlerted(key)) return
+        markAlerted(key)
         CareNotifier.show(ctx, title, body, kind, false)
     }
 
