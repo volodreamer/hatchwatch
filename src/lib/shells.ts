@@ -387,13 +387,14 @@ export function isLightTheme(id: ThemeId): boolean {
 }
 
 export function isTriShell(id: ThemeId): boolean {
-  return Boolean(SHELLS[id].tri);
+  const shell: ShellDef = SHELLS[id];
+  return Boolean(shell.tri);
 }
 
 export function applyTheme(id: ThemeId) {
   if (typeof document === "undefined") return;
   const next = normalizeTheme(id);
-  const shell = SHELLS[next];
+  const shell: ShellDef = SHELLS[next];
   const root = document.documentElement;
   root.dataset.theme = next;
   root.dataset.scheme = shell.light ? "light" : "dark";
