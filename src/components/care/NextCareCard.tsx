@@ -64,7 +64,7 @@ export function NextCareCard({
         <span
           className={cn(
             "flex size-11 shrink-0 items-center justify-center rounded-md",
-            urgent ? "bg-danger text-fg" : "bg-surface-2 text-primary",
+            urgent ? "bg-danger text-fg" : "care-next-icon bg-surface-2 text-primary",
           )}
         >
           <Icon className="size-5" strokeWidth={1.8} />

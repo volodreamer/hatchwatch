@@ -253,6 +253,8 @@ html[data-theme="garden-test"] {
   --color-warn: #e0c06a;
   --color-ok: #7cd9a1;
   --color-lcd-stroke: #ff3d9a;
+  --color-key: #aa53c6;
+  --color-accent: #ffb7ce;
   --shell-pattern:
     radial-gradient(ellipse at 18% 22%, rgb(124 217 161 / 0.22) 0 18px, transparent 19px),
     radial-gradient(ellipse at 78% 70%, rgb(255 61 154 / 0.28) 0 16px, transparent 17px),
@@ -260,14 +262,12 @@ html[data-theme="garden-test"] {
   --shell-pattern-size: 160px 160px;
 }
 
-html[data-theme="garden-test"] .action-key {
-  background-color: var(--color-primary);
-  color: var(--color-primary-fg);
+html[data-theme="garden-test"] .action-key svg {
+  color: var(--color-key);
 }
 
-html[data-theme="garden-test"] .action-key:hover {
-  background-color: color-mix(in oklab, var(--color-primary) 86%, #fff);
-  color: var(--color-primary-fg);
+html[data-theme="garden-test"] .care-next-icon {
+  color: var(--color-accent);
 }
 
 html[data-theme="gingham-avocado"] {
