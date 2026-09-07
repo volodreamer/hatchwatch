@@ -5,7 +5,6 @@ import { formBlurb, planHeadline, planSteps } from "@/lib/care-copy";
 import { CHARACTERS } from "@/lib/tama/characters";
 import { TARGET_PLANS } from "@/lib/tama/evolution";
 import type { DerivedState } from "@/lib/tama/types";
-import { cn } from "@/lib/utils";
 
 export function GrowthPath({ derived }: { derived: DerivedState }) {
   const { locale, t } = useI18n();
@@ -28,12 +27,7 @@ export function GrowthPath({ derived }: { derived: DerivedState }) {
           return (
             <li key={`${id}-${i}`} className="flex gap-3">
               <div className="flex flex-col items-center">
-                <span
-                  className={cn(
-                    "flex size-16 items-center justify-center rounded-md",
-                    isNow ? "bg-lcd text-lcd-pixel" : "bg-surface-2 text-muted",
-                  )}
-                >
+                <span className="flex size-16 items-center justify-center rounded-md bg-lcd text-lcd-pixel">
                   <span className="size-14">
                     <PixelSprite id={id} />
                   </span>

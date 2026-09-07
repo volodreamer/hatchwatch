@@ -20,9 +20,7 @@ export const MODERN_THEMES = [
   "space-astronaut",
 ] as const;
 
-export const TEST_THEMES = ["garden-test"] as const;
-
-export const SHELL_THEMES = [...CLASSIC_THEMES, ...MODERN_THEMES, ...TEST_THEMES] as const;
+export const SHELL_THEMES = [...CLASSIC_THEMES, ...MODERN_THEMES] as const;
 
 export type ThemeId = (typeof SHELL_THEMES)[number];
 
@@ -42,6 +40,8 @@ const LIGHT: ReadonlySet<ThemeId> = new Set([
   "paper-collage",
 ]);
 
+const TRI: ReadonlySet<ThemeId> = new Set(["tama-garden", "neon-pop"]);
+
 const LEGACY: Record<string, ThemeId> = {
   green: "tama-garden",
   white: "white-blue",
@@ -51,6 +51,7 @@ const LEGACY: Record<string, ThemeId> = {
   orange: "diner",
   purple: "purple-pink",
   smoke: "black-carbon",
+  "garden-test": "tama-garden",
 };
 
 export function isThemeId(value: unknown): value is ThemeId {
@@ -67,11 +68,16 @@ export function isLightTheme(id: ThemeId): boolean {
   return LIGHT.has(id);
 }
 
+export function isTriShell(id: ThemeId): boolean {
+  return TRI.has(id);
+}
+
 export function applyTheme(id: ThemeId) {
   if (typeof document === "undefined") return;
   const next = normalizeTheme(id);
   document.documentElement.dataset.theme = next;
   document.documentElement.dataset.scheme = isLightTheme(next) ? "light" : "dark";
+  document.documentElement.dataset.shell = isTriShell(next) ? "tri" : "duo";
   const meta = document.querySelector('meta[name="theme-color"]');
   if (!meta) return;
   const bg = getComputedStyle(document.documentElement).getPropertyValue("--color-bg").trim();

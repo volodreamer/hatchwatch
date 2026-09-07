@@ -166,12 +166,14 @@ html[data-theme="neon-pop"] {
   --color-fg: #f8f0ff;
   --color-muted: #d8b4f0;
   --color-faint: #b080d0;
-  --color-primary: #ff007f;
-  --color-primary-fg: #fff5fa;
+  --color-primary: #39ff14;
+  --color-primary-fg: #081428;
   --color-border: #9a20cc;
   --color-danger: #ff6a8a;
   --color-warn: #ffe14a;
   --color-ok: #39ff14;
+  --color-lcd-stroke: #ff007f;
+  --color-accent: #ff007f;
   --shell-pattern:
     repeating-linear-gradient(135deg, transparent 0 16px, rgb(57 255 20 / 0.16) 16px 18px),
     repeating-linear-gradient(45deg, transparent 0 28px, rgb(255 0 127 / 0.14) 28px 30px);
@@ -226,26 +228,6 @@ html[data-theme="tama-garden"] {
   --color-fg: #e6f6f6;
   --color-muted: #9ec9cb;
   --color-faint: #6a9ea0;
-  --color-primary: #ffb7ce;
-  --color-primary-fg: #4a1830;
-  --color-border: #004a50;
-  --color-danger: #e87880;
-  --color-warn: #e0c06a;
-  --color-ok: #a362ce;
-  --shell-pattern:
-    radial-gradient(ellipse at 18% 22%, rgb(124 217 161 / 0.22) 0 18px, transparent 19px),
-    radial-gradient(ellipse at 78% 70%, rgb(255 183 206 / 0.28) 0 16px, transparent 17px),
-    radial-gradient(ellipse at 52% 48%, rgb(163 98 206 / 0.18) 0 12px, transparent 13px);
-  --shell-pattern-size: 160px 160px;
-}
-
-html[data-theme="garden-test"] {
-  --color-bg: #006269;
-  --color-surface: #0d7a82;
-  --color-surface-2: #1a8a91;
-  --color-fg: #e6f6f6;
-  --color-muted: #9ec9cb;
-  --color-faint: #6a9ea0;
   --color-primary: #a362ce;
   --color-primary-fg: #f8f0ff;
   --color-border: #004a50;
@@ -261,20 +243,20 @@ html[data-theme="garden-test"] {
   --shell-pattern-size: 160px 160px;
 }
 
-html[data-theme="garden-test"] .action-key {
+html[data-shell="tri"] .action-key {
   color: var(--color-accent);
 }
 
-html[data-theme="garden-test"] .care-next-icon {
+html[data-shell="tri"] .care-next-icon {
   color: var(--color-accent);
 }
 
-html[data-theme="garden-test"] .tile-kicker {
+html[data-shell="tri"] .tile-kicker {
   color: var(--color-primary);
 }
 
-html[data-theme="garden-test"] button:not(.overlay-dismiss),
-html[data-theme="garden-test"] [data-slot="button"] {
+html[data-shell="tri"] button:not(.overlay-dismiss),
+html[data-shell="tri"] [data-slot="button"] {
   box-shadow: 0 0 0 1px var(--color-primary);
 }
 

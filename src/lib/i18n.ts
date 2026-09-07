@@ -49,8 +49,6 @@ const en: Dict = {
   "theme.diner": "Fast Food / Diner",
   "theme.paper-collage": "Paper Collage",
   "theme.space-astronaut": "Space Astronaut",
-  "theme.test": "Test",
-  "theme.garden-test": "Tama Garden (test)",
   "lang.label": "Language",
   "lang.en": "English",
   "lang.uk": "Українська",
@@ -502,8 +500,6 @@ const uk: Dict = {
   "theme.diner": "Закусочна",
   "theme.paper-collage": "Паперовий колаж",
   "theme.space-astronaut": "Космонавт",
-  "theme.test": "Тест",
-  "theme.garden-test": "Сад Tama (тест)",
 
   "setup.kicker": "Компаньйон Gen 1",
   "setup.blurb": "Запиши вилуплення, обери кого ростиш — ми стежимо за серцями, дисципліною і 15-хвилинним вікном, щоб корпус не випередив тебе.",
