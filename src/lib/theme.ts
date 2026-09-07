@@ -20,7 +20,9 @@ export const MODERN_THEMES = [
   "space-astronaut",
 ] as const;
 
-export const SHELL_THEMES = [...CLASSIC_THEMES, ...MODERN_THEMES] as const;
+export const TEST_THEMES = ["garden-test"] as const;
+
+export const SHELL_THEMES = [...CLASSIC_THEMES, ...MODERN_THEMES, ...TEST_THEMES] as const;
 
 export type ThemeId = (typeof SHELL_THEMES)[number];
 

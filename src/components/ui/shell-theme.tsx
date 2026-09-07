@@ -1,5 +1,5 @@
 import { useI18n } from "@/hooks/use-i18n";
-import { CLASSIC_THEMES, MODERN_THEMES, type ThemeId } from "@/lib/theme";
+import { CLASSIC_THEMES, MODERN_THEMES, TEST_THEMES, type ThemeId } from "@/lib/theme";
 import { useThemeStore } from "@/store/theme-store";
 
 export function ShellThemePicker() {
@@ -27,6 +27,13 @@ export function ShellThemePicker() {
         </optgroup>
         <optgroup label={t("theme.modern")}>
           {MODERN_THEMES.map((id) => (
+            <option key={id} value={id}>
+              {t(`theme.${id}`)}
+            </option>
+          ))}
+        </optgroup>
+        <optgroup label={t("theme.test")}>
+          {TEST_THEMES.map((id) => (
             <option key={id} value={id}>
               {t(`theme.${id}`)}
             </option>
