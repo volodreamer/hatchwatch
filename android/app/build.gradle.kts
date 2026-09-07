@@ -4,6 +4,10 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
+kotlin {
+    jvmToolchain(17)
+}
+
 android {
     namespace = "com.hatchwatch.app"
     compileSdk = 35

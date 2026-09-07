@@ -2,6 +2,8 @@
 build/
 local.properties
 *.iml
-.idea/
+.idea/*
+!.idea/runConfigurations/
+!.idea/runConfigurations/**
 .cxx/
 captains.log
