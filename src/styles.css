@@ -262,7 +262,7 @@ html[data-theme="garden-test"] {
   --shell-pattern-size: 160px 160px;
 }
 
-html[data-theme="garden-test"] .action-key svg {
+html[data-theme="garden-test"] .action-key {
   color: var(--color-key);
 }
 
