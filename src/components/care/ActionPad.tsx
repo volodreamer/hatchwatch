@@ -54,8 +54,7 @@ export function ActionPad({
             onClick={() => onLog(a.type)}
             className={cn(
               "h-auto min-h-16 flex-col gap-1 rounded-lg py-2.5",
-              !hot && "text-fg",
-              a.type === "miss-care" && "text-danger",
+              a.type === "miss-care" ? "text-danger" : "action-key",
             )}
           >
             <Icon className="size-5" strokeWidth={1.7} />

@@ -260,6 +260,16 @@ html[data-theme="garden-test"] {
   --shell-pattern-size: 160px 160px;
 }
 
+html[data-theme="garden-test"] .action-key {
+  background-color: var(--color-primary);
+  color: var(--color-primary-fg);
+}
+
+html[data-theme="garden-test"] .action-key:hover {
+  background-color: color-mix(in oklab, var(--color-primary) 86%, #fff);
+  color: var(--color-primary-fg);
+}
+
 html[data-theme="gingham-avocado"] {
   --color-bg: #c8e8a8;
   --color-surface: #d8f0bc;
