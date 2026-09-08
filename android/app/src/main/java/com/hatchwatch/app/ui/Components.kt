@@ -325,7 +325,7 @@ private val HEART_ON = arrayOf(
 )
 private val HEART_OFF = arrayOf(
     ".##.##.",
-    "#.....#",
+    "#..#..#",
     "#.....#",
     ".#...#.",
     "..#.#..",
