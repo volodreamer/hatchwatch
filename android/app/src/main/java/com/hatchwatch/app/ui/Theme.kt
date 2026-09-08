@@ -37,6 +37,10 @@ data class HwColors(
     val danger: Color,
     val warn: Color,
     val ok: Color,
+    /** Three-color shells: LCD stroke, accent keys, primary titles/outlines. */
+    val tri: Boolean = false,
+    val lcdStroke: Color? = null,
+    val accent: Color? = null,
 )
 
 private fun hex(v: Long) = Color(v)
@@ -57,12 +61,18 @@ private fun shell(
     danger: Long,
     warn: Long,
     ok: Long,
+    tri: Boolean = false,
+    lcdStroke: Long? = null,
+    accent: Long? = null,
 ) = HwColors(
     id, group, light,
     hex(bg), hex(surface), hex(surface2),
     hex(fg), hex(muted), hex(faint),
     hex(primary), hex(primaryFg), hex(border),
     hex(danger), hex(warn), hex(ok),
+    tri,
+    lcdStroke?.let(::hex),
+    accent?.let(::hex),
 )
 
 /** Same ids and hex as the website `src/lib/shells.ts`. */
@@ -73,8 +83,8 @@ val HwShells = listOf(
     shell("white-red", "classic", true, 0xFFFFFFFF, 0xFFFAF6F5, 0xFFF4E8E6, 0xFF1C1010, 0xFF6A4848, 0xFF987070, 0xFFEE0700, 0xFFFFF6F5, 0xFFE0D0CE, 0xFFB01010, 0xFFA07010, 0xFF2A7A40),
     shell("yellow-black", "classic", true, 0xFFFFD700, 0xFFFFE44D, 0xFFFFEE80, 0xFF1A1A1A, 0xFF4A4208, 0xFF6E6418, 0xFF1A1A1A, 0xFFFFD700, 0xFFD4B400, 0xFF8E1010, 0xFF5A3C00, 0xFF1C5C28),
     shell("black-carbon", "classic", false, 0xFF000000, 0xFF1C1C1C, 0xFF2A2A2A, 0xFFF0F0F0, 0xFF9A9A9A, 0xFF6A6A6A, 0xFFE8E8E8, 0xFF111111, 0xFF3A3A3A, 0xFFE07070, 0xFFE0C060, 0xFF80D090),
-    shell("tama-garden", "modern", false, 0xFF006269, 0xFF0D7A82, 0xFF1A8A91, 0xFFE6F6F6, 0xFF9EC9CB, 0xFF6A9EA0, 0xFFA362CE, 0xFFF8F0FF, 0xFF004A50, 0xFFE87880, 0xFFE0C06A, 0xFF7CD9A1),
-    shell("neon-pop", "modern", false, 0xFF7B00AE, 0xFF8E12C4, 0xFF5A0088, 0xFFF8F0FF, 0xFFD8B4F0, 0xFFB080D0, 0xFF39FF14, 0xFF081428, 0xFF9A20CC, 0xFFFF6A8A, 0xFFFFE14A, 0xFF39FF14),
+    shell("tama-garden", "modern", false, 0xFF006269, 0xFF0D7A82, 0xFF1A8A91, 0xFFE6F6F6, 0xFF9EC9CB, 0xFF6A9EA0, 0xFFA362CE, 0xFFF8F0FF, 0xFF004A50, 0xFFE87880, 0xFFE0C06A, 0xFF7CD9A1, tri = true, lcdStroke = 0xFFFF3D9A, accent = 0xFFFFB7CE),
+    shell("neon-pop", "modern", false, 0xFF7B00AE, 0xFF8E12C4, 0xFF5A0088, 0xFFF8F0FF, 0xFFD8B4F0, 0xFFB080D0, 0xFF39FF14, 0xFF081428, 0xFF9A20CC, 0xFFFF6A8A, 0xFFFFE14A, 0xFF39FF14, tri = true, lcdStroke = 0xFFFF007F, accent = 0xFFFF007F),
     shell("candy-swirl", "modern", true, 0xFFFFF7FB, 0xFFFFFFFF, 0xFFFFE8F4, 0xFF4A2040, 0xFF8A6080, 0xFFB090A8, 0xFFFF7EB3, 0xFF3A1028, 0xFFF0D0E4, 0xFFC43050, 0xFFC09020, 0xFF3A9A68),
     shell("argyle-heart", "modern", true, 0xFFF4E8EE, 0xFFFFF8FB, 0xFFEAD4DC, 0xFF3A2030, 0xFF7A5868, 0xFFA08090, 0xFFC45A7A, 0xFFFFF6F8, 0xFFE0C8D0, 0xFFB03040, 0xFFA07820, 0xFF3A7A50),
     shell("flower-perfume", "modern", true, 0xFFF6E8F4, 0xFFFFF6FC, 0xFFEDD4EA, 0xFF402040, 0xFF806080, 0xFFA888A8, 0xFFD080C0, 0xFF301028, 0xFFE4CCE0, 0xFFC04060, 0xFFB08820, 0xFF4A8A68),
@@ -139,6 +149,8 @@ val HwOk: Color
     @Composable @ReadOnlyComposable get() = LocalHwColors.current.ok
 val HwBorder: Color
     @Composable @ReadOnlyComposable get() = LocalHwColors.current.border
+val HwLcdStroke: Color
+    @Composable @ReadOnlyComposable get() = LocalHwColors.current.lcdStroke ?: HwLcdDim
 
 /** Same iFlash 502 face as the website — Latin + Ukrainian Cyrillic. */
 val HwPixel: FontFamily = FontFamily(Font(R.font.iflash_502))

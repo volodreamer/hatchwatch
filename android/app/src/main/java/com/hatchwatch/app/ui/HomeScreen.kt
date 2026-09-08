@@ -114,11 +114,13 @@ private fun LcdPanel(locale: String, derived: DerivedState, clock: String, date:
     val s = derived.stats
     val night = pet.sleeping && !pet.lightsOn
     val ink = if (night) HwLcd else HwLcdPixel
+    val shape = RoundedCornerShape(12.dp)
     Column(
         Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
+            .clip(shape)
             .background(if (night) HwLcdPixel else HwLcd)
+            .border(2.dp, HwLcdStroke, shape)
             .padding(14.dp),
     ) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -253,6 +255,7 @@ private fun ActionGrid(locale: String, derived: DerivedState, onMiss: () -> Unit
                             },
                             primary = hot,
                             danger = type == ActionType.miss_care,
+                            accent = type != ActionType.miss_care,
                             icon = icon,
                             modifier = Modifier.fillMaxWidth(),
                         )

@@ -66,21 +66,27 @@ fun HwButton(
     modifier: Modifier = Modifier,
     primary: Boolean = false,
     danger: Boolean = false,
+    accent: Boolean = false,
     icon: ImageVector? = null,
 ) {
+    val palette = LocalHwColors.current
     val bg = when {
-        danger -> HwDanger.copy(alpha = 0.2f)
-        primary -> HwPrimary
-        else -> HwSurface2
+        danger -> palette.danger.copy(alpha = 0.2f)
+        primary -> palette.primary
+        else -> palette.surface2
     }
     val fg = when {
-        primary -> HwPrimaryFg
-        danger -> HwDanger
-        else -> HwFg
+        primary -> palette.primaryFg
+        danger -> palette.danger
+        accent -> palette.accent ?: palette.fg
+        else -> palette.fg
     }
+    val outline = if (palette.tri) palette.primary else Color.Transparent
+    val shape = RoundedCornerShape(12.dp)
     Box(
         modifier
-            .clip(RoundedCornerShape(12.dp))
+            .border(1.dp, outline, shape)
+            .clip(shape)
             .background(bg)
             .clickable(onClick = onClick)
             .padding(horizontal = 10.dp, vertical = 10.dp),
