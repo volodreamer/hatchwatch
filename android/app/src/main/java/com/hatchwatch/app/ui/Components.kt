@@ -15,6 +15,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.Icon
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -33,7 +35,6 @@ import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -47,6 +48,7 @@ fun HwButton(
     modifier: Modifier = Modifier,
     primary: Boolean = false,
     danger: Boolean = false,
+    icon: ImageVector? = null,
 ) {
     val bg = when {
         danger -> HwDanger.copy(alpha = 0.2f)
@@ -63,10 +65,15 @@ fun HwButton(
             .clip(RoundedCornerShape(12.dp))
             .background(bg)
             .clickable(onClick = onClick)
-            .padding(horizontal = 12.dp, vertical = 12.dp),
+            .padding(horizontal = 10.dp, vertical = 10.dp),
         contentAlignment = Alignment.Center,
     ) {
-        Text(label, color = fg, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            if (icon != null) {
+                Icon(icon, contentDescription = label, tint = fg, modifier = Modifier.size(20.dp))
+            }
+            Text(label, color = fg, fontSize = 12.sp, fontWeight = FontWeight.Medium)
+        }
     }
 }
 
@@ -138,7 +145,7 @@ fun PoopPixels(count: Int, tint: Color = HwLcdPixel) {
 @Composable
 fun HeartsRow(label: String, value: Int, color: Color = HwLcdPixel) {
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-        Text(label, color = color.copy(alpha = 0.7f), fontSize = 12.sp, fontFamily = FontFamily.Monospace, modifier = Modifier.width(56.dp))
+        Text(label, color = color.copy(alpha = 0.7f), fontSize = 12.sp, fontFamily = HwPixel, modifier = Modifier.width(56.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
             repeat(4) { i ->
                 Text(if (i < value) "♥" else "♡", color = color, fontSize = 16.sp)
@@ -150,7 +157,7 @@ fun HeartsRow(label: String, value: Int, color: Color = HwLcdPixel) {
 @Composable
 fun DiscBar(value: Int, label: String, color: Color = HwLcdPixel) {
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-        Text(label, color = color.copy(alpha = 0.7f), fontSize = 12.sp, fontFamily = FontFamily.Monospace, modifier = Modifier.width(56.dp))
+        Text(label, color = color.copy(alpha = 0.7f), fontSize = 12.sp, fontFamily = HwPixel, modifier = Modifier.width(56.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(3.dp)) {
             repeat(4) { i ->
                 val filled = value >= (i + 1) * 25
@@ -165,18 +172,18 @@ fun DiscBar(value: Int, label: String, color: Color = HwLcdPixel) {
 }
 
 @Composable
-fun MiniTile(label: String, value: String) {
+fun MiniTile(label: String, value: String, modifier: Modifier = Modifier, inset: Boolean = false) {
     Column(
-        Modifier
+        modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
-            .background(HwSurface)
+            .background(if (inset) HwSurface2 else HwSurface)
             .border(1.dp, HwBorder, RoundedCornerShape(12.dp))
             .padding(horizontal = 12.dp, vertical = 10.dp),
     ) {
         Text(label.uppercase(), color = HwMuted, fontSize = 10.sp, letterSpacing = 1.4.sp, fontWeight = FontWeight.Medium)
         Spacer(Modifier.height(2.dp))
-        Text(value, color = HwFg, fontSize = 18.sp, fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold)
+        Text(value, color = HwFg, fontSize = 18.sp, fontFamily = HwPixel, fontWeight = FontWeight.Bold)
     }
 }
 
