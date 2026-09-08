@@ -23,7 +23,15 @@ You do not need Android Studio on the phone machine. Each push to `android` (and
 
 To build without a new commit: **Actions → Android APK → Run workflow → branch `android` → Run workflow**.
 
-This is a debug APK (debug keystore). Fine for your own phone. Play Store / a signed release needs a keystore later.
+This is a debug APK signed with the project keystore in `android/keystore/`. Fine for your own phone. Play Store / a signed release needs a different key later.
+
+### “App not installed” when updating
+
+Android will not replace an installed app if the new APK is signed with a different key. Early GitHub builds each used a fresh CI debug key, and Android Studio used yet another key on your machine — that is why overlay installs failed even between two GitHub APKs.
+
+From version **2.1.1** (versionCode 4) onward, Studio and Actions share one keystore. **One last time:** uninstall Hatchwatch, then install the new APK. After that, later GitHub APKs should install over the existing one.
+
+Uninstall wipes local pet state. Before you remove the old build: Settings → backup / copy the short JSON, then restore it after the new install.
 
 ## Open in Android Studio
 
