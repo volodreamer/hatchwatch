@@ -10,7 +10,7 @@ Backups are the same `hatchwatch-v1` JSON as the website. Save a file here, open
 
 Once the pet is an adult (evolved in the app **or** matched on the device), the Growth path card locks to that form. Mistake counts stay on the card; it no longer predicts a different adult.
 
-Home uses the website **Carbon** palette by default (true black, grey tiles). Settings can switch to Garden, Classic yellow, or Ice. Care buttons use the same icons as the PWA. The LCD clock shows the date under the time.
+Home uses the website **Carbon** palette by default (true black, grey tiles). Settings can switch to Garden, Classic yellow, or Ice. Care buttons use the same icons as the PWA. The LCD clock shows the date under the time. Titles, LCD labels, and pixel numbers use **iFlash 502** (same face as the website) for English and Ukrainian.
 
 ## Download an APK from GitHub
 
@@ -29,9 +29,9 @@ This is a debug APK signed with the project keystore in `android/keystore/`. Fin
 
 Android will not replace an installed app if the new APK is signed with a different key. Early GitHub builds each used a fresh CI debug key, and Android Studio used yet another key on your machine — that is why overlay installs failed even between two GitHub APKs.
 
-From version **2.1.1** (versionCode 4) onward, Studio and Actions share one keystore. **One last time:** uninstall Hatchwatch, then install the new APK. After that, later GitHub APKs should install over the existing one.
+From version **2.1.1** (versionCode 4) onward, Studio and Actions share one keystore. Later GitHub APKs should install over the existing one.
 
-Uninstall wipes local pet state. Before you remove the old build: Settings → backup / copy the short JSON, then restore it after the new install.
+Uninstall wipes local pet state. Before you remove an old build: Settings → backup / copy the short JSON, then restore it after the new install.
 
 ## Open in Android Studio
 
