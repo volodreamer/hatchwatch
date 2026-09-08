@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -17,9 +16,17 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.Cookie
+import androidx.compose.material.icons.outlined.DarkMode
+import androidx.compose.material.icons.outlined.MedicalServices
+import androidx.compose.material.icons.outlined.Notifications
+import androidx.compose.material.icons.outlined.Restaurant
 import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.outlined.SportsEsports
 import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material.icons.outlined.Undo
+import androidx.compose.material.icons.outlined.WaterDrop
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -32,7 +39,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -57,10 +63,11 @@ fun HomeScreen(locale: String, derived: DerivedState) {
     var showSync by remember { mutableStateOf(false) }
     var missOpen by remember { mutableStateOf(false) }
     val clock = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(derived.now))
+    val date = SimpleDateFormat("MM/dd", Locale.getDefault()).format(Date(derived.now))
 
     Column(
         Modifier
-            .fillMaxSize()
+            .fillMaxWidth()
             .verticalScroll(rememberScrollState())
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -68,7 +75,7 @@ fun HomeScreen(locale: String, derived: DerivedState) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Column {
                 Text("HATCHWATCH", color = HwPrimary, fontSize = 11.sp, letterSpacing = 2.sp, fontWeight = FontWeight.Medium)
-                Text(pet.nickname, color = HwFg, fontSize = 24.sp, fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold)
+                Text(pet.nickname, color = HwFg, fontSize = 24.sp, fontFamily = HwPixel, fontWeight = FontWeight.Bold)
             }
             Row {
                 IconButton(onClick = { PetStore.undo(); Toast.makeText(ctx, HwCopy.t(locale, "home.undo"), Toast.LENGTH_SHORT).show() }) {
@@ -83,7 +90,7 @@ fun HomeScreen(locale: String, derived: DerivedState) {
             }
         }
 
-        LcdPanel(locale, derived, clock)
+        LcdPanel(locale, derived, clock, date)
         NextCare(locale, derived)
         ActionGrid(locale, derived, onMiss = { missOpen = true })
         if (missOpen) {
@@ -102,7 +109,7 @@ fun HomeScreen(locale: String, derived: DerivedState) {
 }
 
 @Composable
-private fun LcdPanel(locale: String, derived: DerivedState, clock: String) {
+private fun LcdPanel(locale: String, derived: DerivedState, clock: String, date: String) {
     val pet = derived.pet
     val s = derived.stats
     val night = pet.sleeping && !pet.lightsOn
@@ -116,10 +123,13 @@ private fun LcdPanel(locale: String, derived: DerivedState, clock: String) {
     ) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Column {
-                Text("${s.stage.name.uppercase()} · AGE ${pet.age}", color = ink.copy(alpha = 0.7f), fontFamily = FontFamily.Monospace, fontSize = 12.sp)
-                Text(s.name, color = ink, fontFamily = FontFamily.Monospace, fontSize = 26.sp, fontWeight = FontWeight.Bold)
+                Text("${s.stage.name.uppercase()} · AGE ${pet.age}", color = ink.copy(alpha = 0.7f), fontFamily = HwPixel, fontSize = 11.sp)
+                Text(s.name, color = ink, fontFamily = HwPixel, fontSize = 26.sp, fontWeight = FontWeight.Bold)
             }
-            Text(clock, color = ink, fontFamily = FontFamily.Monospace, fontSize = 18.sp)
+            Column(horizontalAlignment = Alignment.End) {
+                Text(clock, color = ink, fontFamily = HwPixel, fontSize = 18.sp)
+                Text(date, color = ink.copy(alpha = 0.7f), fontFamily = HwPixel, fontSize = 12.sp)
+            }
         }
         Spacer(Modifier.height(10.dp))
         Row(verticalAlignment = Alignment.Bottom) {
@@ -135,7 +145,7 @@ private fun LcdPanel(locale: String, derived: DerivedState, clock: String) {
                 HeartsRow(HwCopy.t(locale, "lcd.hungry"), pet.hunger, ink)
                 HeartsRow(HwCopy.t(locale, "lcd.happy"), pet.happy, ink)
                 DiscBar(pet.discipline, HwCopy.t(locale, "lcd.disc"), ink)
-                Text("${pet.weight}g", color = ink.copy(alpha = 0.8f), fontFamily = FontFamily.Monospace)
+                Text("${pet.weight}g", color = ink.copy(alpha = 0.8f), fontFamily = HwPixel)
             }
         }
         Row(
@@ -151,7 +161,7 @@ private fun LcdPanel(locale: String, derived: DerivedState, clock: String) {
                 pet.sick -> HwCopy.t(locale, "lcd.sick")
                 else -> HwCopy.t(locale, "lcd.awake")
             }
-            Text(status.uppercase(), color = ink, fontFamily = FontFamily.Monospace, fontSize = 12.sp)
+            Text(status.uppercase(), color = ink, fontFamily = HwPixel, fontSize = 12.sp)
         }
     }
 }
@@ -162,7 +172,7 @@ private fun NextCare(locale: String, derived: DerivedState) {
     if (alert == null) {
         SectionCard {
             Text(HwCopy.t(locale, "care.next").uppercase(), color = HwMuted, fontSize = 11.sp, letterSpacing = 1.6.sp)
-            Text(HwCopy.t(locale, "care.clear"), color = HwFg, fontFamily = FontFamily.Monospace, fontSize = 22.sp)
+            Text(HwCopy.t(locale, "care.clear"), color = HwFg, fontFamily = HwPixel, fontSize = 22.sp)
             Text(HwCopy.t(locale, "care.clear.d"), color = HwMuted, fontSize = 14.sp)
         }
         return
@@ -192,11 +202,11 @@ private fun NextCare(locale: String, derived: DerivedState) {
             }.uppercase(),
             color = HwMuted, fontSize = 11.sp, letterSpacing = 1.6.sp,
         )
-        Text(alert.title, color = HwFg, fontFamily = FontFamily.Monospace, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+        Text(alert.title, color = HwFg, fontFamily = HwPixel, fontSize = 22.sp, fontWeight = FontWeight.Bold)
         Text(
             if (alert.kind == AlertKind.poop || alert.kind == AlertKind.sick) HwCopy.t(locale, "care.check")
             else Simulate.formatDuration(alert.dueAt - derived.now),
-            color = HwFg, fontFamily = FontFamily.Monospace, fontSize = 28.sp,
+            color = HwFg, fontFamily = HwPixel, fontSize = 28.sp,
         )
         Text(alert.detail, color = HwMuted, fontSize = 14.sp)
         Text(alert.deviceHint.uppercase(), color = HwFaint, fontSize = 11.sp, letterSpacing = 1.4.sp)
@@ -215,21 +225,21 @@ private fun NextCare(locale: String, derived: DerivedState) {
 private fun ActionGrid(locale: String, derived: DerivedState, onMiss: () -> Unit) {
     val ctx = LocalContext.current
     val actions = listOf(
-        ActionType.meal to "act.meal",
-        ActionType.snack to "act.snack",
-        ActionType.game to "act.game",
-        ActionType.clean to "act.clean",
-        ActionType.scold to "act.scold",
-        ActionType.medicine to "act.medicine",
-        ActionType.lights_off to "act.lights",
-        ActionType.miss_care to "act.miss",
+        Triple(ActionType.meal, "act.meal", Icons.Outlined.Restaurant),
+        Triple(ActionType.snack, "act.snack", Icons.Outlined.Cookie),
+        Triple(ActionType.game, "act.game", Icons.Outlined.SportsEsports),
+        Triple(ActionType.clean, "act.clean", Icons.Outlined.WaterDrop),
+        Triple(ActionType.scold, "act.scold", Icons.Outlined.Notifications),
+        Triple(ActionType.medicine, "act.medicine", Icons.Outlined.MedicalServices),
+        Triple(ActionType.lights_off, "act.lights", Icons.Outlined.DarkMode),
+        Triple(ActionType.miss_care, "act.miss", Icons.Outlined.Close),
     )
     val attention = derived.pet.misbehaveAt != null || derived.pet.checkDiscAt != null
     val lightsHot = derived.pet.sleeping && derived.pet.lightsOn
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         actions.chunked(4).forEach { row ->
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                row.forEach { (type, key) ->
+                row.forEach { (type, key, icon) ->
                     val hot = (type == ActionType.scold && attention) || (type == ActionType.lights_off && lightsHot)
                     Box(Modifier.weight(1f)) {
                         HwButton(
@@ -243,6 +253,7 @@ private fun ActionGrid(locale: String, derived: DerivedState, onMiss: () -> Unit
                             },
                             primary = hot,
                             danger = type == ActionType.miss_care,
+                            icon = icon,
                             modifier = Modifier.fillMaxWidth(),
                         )
                     }
@@ -283,15 +294,25 @@ private fun PathCard(locale: String, derived: DerivedState) {
             (if (grown) HwCopy.t(locale, "path.grew", mapOf("name" to formName))
             else HwCopy.t(locale, "path.aim", mapOf("name" to targetName))) +
                 if (showHeading) HwCopy.t(locale, "path.heading", mapOf("name" to predictedName)) else "",
-            color = HwFg, fontFamily = FontFamily.Monospace, fontSize = 18.sp,
+            color = HwFg, fontFamily = HwPixel, fontSize = 18.sp,
         )
         if (grown && !secretOpen && pet.form != pet.targetId) {
             Text(HwCopy.t(locale, "path.wanted", mapOf("name" to targetName)), color = HwMuted, fontSize = 14.sp)
         }
         Text(summary, color = HwMuted, fontSize = 14.sp)
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-            MiniTile(HwCopy.t(locale, "path.care"), "${derived.budget.careUsed}${derived.budget.careMax?.let { " / $it" } ?: ""}")
-            MiniTile(HwCopy.t(locale, "path.disc"), "${derived.budget.discUsed}${derived.budget.discMax?.let { " / $it" } ?: ""}")
+            MiniTile(
+                HwCopy.t(locale, "path.care"),
+                "${derived.budget.careUsed}${derived.budget.careMax?.let { " / $it" } ?: ""}",
+                modifier = Modifier.weight(1f),
+                inset = true,
+            )
+            MiniTile(
+                HwCopy.t(locale, "path.disc"),
+                "${derived.budget.discUsed}${derived.budget.discMax?.let { " / $it" } ?: ""}",
+                modifier = Modifier.weight(1f),
+                inset = true,
+            )
         }
         Text(derived.budget.stageTip, color = HwFg, fontSize = 14.sp)
         Text(
@@ -313,16 +334,16 @@ private fun PathCard(locale: String, derived: DerivedState) {
 private fun TimerGrid(locale: String, derived: DerivedState) {
     val pet = derived.pet
     val now = derived.now
-    fun dur(at: Long?) = if (at == null) "—" else Simulate.formatDuration(at - now)
+    fun dur(at: Long?) = if (at == null) "\u2014" else Simulate.formatDuration(at - now)
     val poopVal = when {
         pet.checkPoopAt != null -> HwCopy.t(locale, "care.check")
         derived.nextPoopAt != null -> dur(derived.nextPoopAt)
-        else -> "—"
+        else -> "\u2014"
     }
     val sickVal = when {
         pet.checkSickAt != null -> HwCopy.t(locale, "care.check")
         derived.nextSicknessAt != null -> dur(derived.nextSicknessAt)
-        else -> "—"
+        else -> "\u2014"
     }
     val discVal = when {
         derived.remainingDiscDrops == null -> HwCopy.t(locale, "home.discNone")
@@ -334,9 +355,9 @@ private fun TimerGrid(locale: String, derived: DerivedState) {
         derived.nextSleepAt != null -> dur(derived.nextSleepAt)
         else -> HwCopy.t(locale, "home.naps")
     }
-    val hungerVal = derived.nextHungerDrainAt?.let { dur(it) } ?: if (pet.hunger == 0) HwCopy.t(locale, "home.empty") else "—"
-    val happyVal = derived.nextHappyDrainAt?.let { dur(it) } ?: if (pet.happy == 0) HwCopy.t(locale, "home.empty") else "—"
-    val evoVal = derived.nextEvolveAt?.let { if (it - now > 0) dur(it) else "—" } ?: "—"
+    val hungerVal = derived.nextHungerDrainAt?.let { dur(it) } ?: if (pet.hunger == 0) HwCopy.t(locale, "home.empty") else "\u2014"
+    val happyVal = derived.nextHappyDrainAt?.let { dur(it) } ?: if (pet.happy == 0) HwCopy.t(locale, "home.empty") else "\u2014"
+    val evoVal = derived.nextEvolveAt?.let { if (it - now > 0) dur(it) else "\u2014" } ?: "\u2014"
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         listOf(
             listOf(HwCopy.t(locale, "home.nextHunger") to hungerVal, HwCopy.t(locale, "home.nextHappy") to happyVal),
