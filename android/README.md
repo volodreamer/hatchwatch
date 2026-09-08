@@ -14,14 +14,13 @@ Home uses the website **Carbon** palette by default (true black, grey tiles). Se
 
 ## Download an APK from GitHub
 
-You do not need Android Studio on the phone machine. Each push to `android` (and a manual button) builds `hatchwatch-debug.apk`.
+You do not need Android Studio on the phone. Each push to `android` (and a manual button) publishes a raw **`.apk`** on [Releases](https://github.com/volodreamer/hatchwatch/releases/latest):
 
-1. Open [Actions → Android APK](https://github.com/volodreamer/hatchwatch/actions/workflows/android-apk.yml).
-2. Pick the latest green run on the `android` branch. First run after this commit takes a few minutes.
-3. **hatchwatch-debug-apk** → download the zip → unzip `hatchwatch-debug.apk`.
-4. On the phone: allow install from the browser/Files app, then open the APK.
+**[hatchwatch-debug.apk](https://github.com/volodreamer/hatchwatch/releases/latest/download/hatchwatch-debug.apk)**
 
-To build without a new commit: **Actions → Android APK → Run workflow → branch `android` → Run workflow**.
+On the phone: allow install from the browser, then open that file. No zip.
+
+To rebuild without a new commit: **Actions → Android APK → Run workflow → branch `android` → Run workflow**.
 
 This is a debug APK signed with the project keystore in `android/keystore/`. Fine for your own phone. Play Store / a signed release needs a different key later.
 

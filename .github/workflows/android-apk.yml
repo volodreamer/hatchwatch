@@ -8,6 +8,9 @@ on:
       - ".github/workflows/android-apk.yml"
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -40,7 +43,21 @@ jobs:
           mkdir -p dist
           cp android/app/build/outputs/apk/debug/app-debug.apk dist/hatchwatch-debug.apk
 
-      - name: Upload APK
+      - name: Publish APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VER=$(sed -n 's/.*versionName = "\(.*\)"/\1/p' android/app/build.gradle.kts | head -1)
+          NOTES="Hatchwatch ${VER} debug APK. Same keystore as earlier overlays — install over the current app. The phone can open this .apk directly."
+          TITLE="Hatchwatch Android ${VER}"
+          if gh release view apk >/dev/null 2>&1; then
+            gh release upload apk dist/hatchwatch-debug.apk --clobber
+            gh release edit apk --title "$TITLE" --notes "$NOTES" --latest --target "${GITHUB_SHA}"
+          else
+            gh release create apk dist/hatchwatch-debug.apk --title "$TITLE" --notes "$NOTES" --latest --target "${GITHUB_SHA}"
+          fi
+
+      - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: hatchwatch-debug-apk
