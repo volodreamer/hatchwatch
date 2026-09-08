@@ -1,3 +1,5 @@
+import java.util.Base64
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -8,6 +10,18 @@ kotlin {
     jvmToolchain(17)
 }
 
+fun hatchwatchKeystore(): File {
+    val dir = rootProject.file("keystore")
+    val jks = File(dir, "hatchwatch-debug.jks")
+    val b64 = File(dir, "hatchwatch-debug.b64")
+    if (!jks.exists()) {
+        require(b64.exists()) { "Missing $b64 — pull android/keystore/hatchwatch-debug.b64" }
+        dir.mkdirs()
+        jks.writeBytes(Base64.getDecoder().decode(b64.readText().filter { !it.isWhitespace() }))
+    }
+    return jks
+}
+
 android {
     namespace = "com.hatchwatch.app"
     compileSdk = 35
@@ -16,14 +30,27 @@ android {
         applicationId = "com.hatchwatch.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 3
-        versionName = "2.1"
+        versionCode = 4
+        versionName = "2.1.1"
+    }
+
+    signingConfigs {
+        create("shared") {
+            storeFile = hatchwatchKeystore()
+            storePassword = "hatchwatch"
+            keyAlias = "androiddebugkey"
+            keyPassword = "hatchwatch"
+        }
     }
 
     buildTypes {
+        debug {
+            signingConfig = signingConfigs.getByName("shared")
+        }
         release {
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            signingConfig = signingConfigs.getByName("shared")
         }
     }
     compileOptions {

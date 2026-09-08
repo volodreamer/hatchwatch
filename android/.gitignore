@@ -7,3 +7,4 @@ local.properties
 !.idea/runConfigurations/**
 .cxx/
 captains.log
+keystore/*.jks
