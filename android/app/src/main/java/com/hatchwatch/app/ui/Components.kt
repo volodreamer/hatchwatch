@@ -1,6 +1,7 @@
 package com.hatchwatch.app.ui
 
 import android.graphics.BitmapFactory
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -36,6 +37,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
@@ -48,6 +51,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.hatchwatch.app.engine.CharacterId
+import kotlin.math.floor
+import kotlin.math.min
 import kotlin.math.roundToInt
 import kotlinx.coroutines.delay
 
@@ -309,13 +314,74 @@ fun PoopPixels(count: Int, tint: Color = HwLcdPixel) {
     }
 }
 
+/** P1 hunger/happy heart, 7×6. Same LCD ink for full and empty — hollow vs solid. */
+private val HEART_ON = arrayOf(
+    ".##.##.",
+    "#######",
+    "#######",
+    ".#####.",
+    "..###..",
+    "...#...",
+)
+private val HEART_OFF = arrayOf(
+    ".##.##.",
+    "#.....#",
+    "#.....#",
+    ".#...#.",
+    "..#.#..",
+    "...#...",
+)
+
+/** P1 discipline cell, 8×5. Outline when empty, solid when filled. */
+private val BAR_ON = arrayOf(
+    "########",
+    "########",
+    "########",
+    "########",
+    "########",
+)
+private val BAR_OFF = arrayOf(
+    "########",
+    "#......#",
+    "#......#",
+    "#......#",
+    "########",
+)
+
+@Composable
+private fun PixelIcon(rows: Array<String>, color: Color, modifier: Modifier = Modifier) {
+    val cols = rows.first().length
+    val rh = rows.size
+    Canvas(modifier) {
+        val cell = floor(min(size.width / cols, size.height / rh))
+        if (cell < 1f) return@Canvas
+        val ox = (size.width - cell * cols) / 2f
+        val oy = (size.height - cell * rh) / 2f
+        rows.forEachIndexed { y, row ->
+            row.forEachIndexed { x, ch ->
+                if (ch == '#') {
+                    drawRect(
+                        color = color,
+                        topLeft = Offset(ox + x * cell, oy + y * cell),
+                        size = Size(cell, cell),
+                    )
+                }
+            }
+        }
+    }
+}
+
 @Composable
 fun HeartsRow(label: String, value: Int, color: Color = HwLcdPixel) {
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
         Text(label, color = color.copy(alpha = 0.7f), fontSize = 12.sp, fontFamily = HwPixel, modifier = Modifier.width(56.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(3.dp), verticalAlignment = Alignment.CenterVertically) {
             repeat(4) { i ->
-                Text(if (i < value) "♥" else "♡", color = color, fontSize = 16.sp)
+                PixelIcon(
+                    if (i < value) HEART_ON else HEART_OFF,
+                    color,
+                    Modifier.size(width = 22.dp, height = 19.dp),
+                )
             }
         }
     }
@@ -323,15 +389,15 @@ fun HeartsRow(label: String, value: Int, color: Color = HwLcdPixel) {
 
 @Composable
 fun DiscBar(value: Int, label: String, color: Color = HwLcdPixel) {
+    val filled = (value / 25).coerceIn(0, 4)
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
         Text(label, color = color.copy(alpha = 0.7f), fontSize = 12.sp, fontFamily = HwPixel, modifier = Modifier.width(56.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(2.dp), verticalAlignment = Alignment.CenterVertically) {
             repeat(4) { i ->
-                val filled = value >= (i + 1) * 25
-                Box(
-                    Modifier
-                        .size(width = 18.dp, height = 10.dp)
-                        .background(if (filled) color else color.copy(alpha = 0.2f), RoundedCornerShape(2.dp)),
+                PixelIcon(
+                    if (i < filled) BAR_ON else BAR_OFF,
+                    color,
+                    Modifier.size(width = 20.dp, height = 13.dp),
                 )
             }
         }
