@@ -38,3 +38,39 @@ First launch asks for **notifications**, **exact alarms**, and **unrestricted ba
 On Xiaomi / HyperOS / some Samsungs: Settings → Apps → Hatchwatch → Battery → **Unrestricted**, and enable Autostart if that toggle exists. Force-stopping the app from system settings still cancels Android alarms until you open it once.
 
 ## Gradle JDK must be 17 or 21
+
+This project cannot use JDK 22, 23, or 24 as the Gradle JVM. In Android Studio:
+
+1. **File → Settings** (macOS: **Android Studio → Settings**).
+2. **Build, Execution, Deployment → Build Tools → Gradle**.
+3. **Gradle JDK** → pick **jbr-17** or **jbr-21** (JetBrains Runtime). Not `JAVA_HOME` if that is 22+.
+4. If 17 is missing: that same JDK dropdown → **Download JDK** → version **17** → Eclipse Temurin or JetBrains Runtime → apply.
+5. **File → Sync Project with Gradle Files**.
+
+The app still compiles as Java 17. That is separate from the JDK Studio uses to run Gradle.
+
+## Run / debug configuration
+
+The **app** configuration lives in `.idea/runConfigurations/app.xml`. After opening this folder it should appear in the run dropdown next to the green triangle. It launches `com.hatchwatch.app` on the selected device.
+
+If the dropdown is empty: **Run → Edit Configurations → + → Android App** → Module **Hatchwatch.app** → Launch default activity.
+
+## What this app does
+
+- Same P1 timers as the website: hunger, happy, poop, scheduled skull, misbehave after heart drops
+- Companion checks: **On the shell** / **Not on the shell** — the phone never invents poop or a skull
+- Replica vs original 1996–97 firmware
+- `AlarmManager.setAlarmClock` for the next care event (Doze cannot defer it) plus exact idle alarms for the rest
+- 2-minute warning before a 15-minute care penalty
+- Reschedule on reboot, time change, timezone change, and app update
+- File save / open / paste so a run can move between the phone app and the website
+- Grown form is definitive on the Growth path card (same as the website)
+
+## Not in this first cut
+
+- Google Drive backup (use the website, then Save / Open file)
+- Play Store listing / signed release APK
+
+## If Gradle asks for a wrapper
+
+This folder already has `gradlew` and `gradle/wrapper`. If Studio still offers to generate one, accept it.
