@@ -12,9 +12,12 @@ import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontSynthesis
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import com.hatchwatch.app.R
 import com.hatchwatch.app.store.PetStore
 
 data class HwColors(
@@ -142,7 +145,8 @@ val HwOk: Color
 val HwBorder: Color
     @Composable @ReadOnlyComposable get() = LocalHwColors.current.border
 
-val HwPixel: FontFamily = FontFamily.Monospace
+/** Same iFlash 502 face as the website — Latin + Ukrainian Cyrillic. */
+val HwPixel: FontFamily = FontFamily(Font(R.font.iflash_502))
 
 @Composable
 fun HatchwatchTheme(content: @Composable () -> Unit) {
@@ -176,9 +180,9 @@ fun HatchwatchTheme(content: @Composable () -> Unit) {
         )
     }
     val type = Typography(
-        displayLarge = TextStyle(fontFamily = HwPixel, fontWeight = FontWeight.Bold, fontSize = 32.sp, color = palette.fg),
-        headlineMedium = TextStyle(fontFamily = HwPixel, fontWeight = FontWeight.Bold, fontSize = 24.sp, color = palette.fg),
-        titleLarge = TextStyle(fontFamily = HwPixel, fontWeight = FontWeight.Bold, fontSize = 20.sp, color = palette.fg),
+        displayLarge = TextStyle(fontFamily = HwPixel, fontWeight = FontWeight.Normal, fontSize = 32.sp, color = palette.fg, fontSynthesis = FontSynthesis.None),
+        headlineMedium = TextStyle(fontFamily = HwPixel, fontWeight = FontWeight.Normal, fontSize = 24.sp, color = palette.fg, fontSynthesis = FontSynthesis.None),
+        titleLarge = TextStyle(fontFamily = HwPixel, fontWeight = FontWeight.Normal, fontSize = 20.sp, color = palette.fg, fontSynthesis = FontSynthesis.None),
         bodyLarge = TextStyle(fontFamily = FontFamily.SansSerif, fontSize = 16.sp, color = palette.fg),
         bodyMedium = TextStyle(fontFamily = FontFamily.SansSerif, fontSize = 14.sp, color = palette.muted),
         labelSmall = TextStyle(fontFamily = FontFamily.SansSerif, fontWeight = FontWeight.Medium, fontSize = 11.sp, letterSpacing = 1.6.sp, color = palette.muted),
