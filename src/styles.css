@@ -1,10 +1,19 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+/* Pixel face for titles — Latin + Ukrainian Cyrillic. Vite inlines the file. */
+@font-face {
+  font-family: "iFlash 502";
+  src: url("./fonts/iFlash_502.ttf") format("truetype");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
 @theme {
   --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Silkscreen", "Outfit", ui-sans-serif, system-ui, sans-serif;
-  --font-pixel: "Silkscreen", "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "iFlash 502", "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --font-pixel: "iFlash 502", "Outfit", ui-sans-serif, system-ui, sans-serif;
   --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 
   --color-bg: #ffd700;
@@ -116,20 +125,6 @@ html[data-shell="tri"] [data-slot="button"] {
     font-synthesis: none;
     -webkit-font-smoothing: none;
     -moz-osx-font-smoothing: unset;
-  }
-
-  html[lang="uk"] {
-    --font-display: "Outfit", ui-sans-serif, system-ui, sans-serif;
-    --font-pixel: "Outfit", ui-sans-serif, system-ui, sans-serif;
-  }
-
-  html[lang="uk"] .font-display,
-  html[lang="uk"] .font-pixel {
-    font-kerning: auto;
-    font-variant-ligatures: normal;
-    font-synthesis: weight;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
   }
 
   button:not(:disabled),
