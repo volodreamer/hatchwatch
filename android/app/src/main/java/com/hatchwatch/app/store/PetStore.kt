@@ -20,12 +20,16 @@ object PetStore {
     private const val KEY_PET = "hatchwatch-v1"
     private const val KEY_LOCALE = "hatchwatch-locale"
     private const val KEY_ALERTED = "hatchwatch-alerted"
+    private const val KEY_SHELL = "hatchwatch-shell"
 
     private val _pet = MutableStateFlow<Pet?>(null)
     val pet: StateFlow<Pet?> = _pet.asStateFlow()
 
     private val _locale = MutableStateFlow("en")
     val locale: StateFlow<String> = _locale.asStateFlow()
+
+    private val _shell = MutableStateFlow("black-carbon")
+    val shell: StateFlow<String> = _shell.asStateFlow()
 
     private var app: Context? = null
 
@@ -40,6 +44,7 @@ object PetStore {
         }
         val savedLocale = prefs.getString(KEY_LOCALE, null)
         _locale.value = savedLocale ?: if (java.util.Locale.getDefault().language == "uk") "uk" else "en"
+        _shell.value = prefs.getString(KEY_SHELL, "black-carbon") ?: "black-carbon"
         _pet.value?.let {
             AlarmScheduler.sync(ctx, it)
             maybeAlert(it.copy(sleeping = false, sleepWindowAt = null), it)
@@ -192,6 +197,12 @@ object PetStore {
     fun setNickname(name: String) {
         val p = _pet.value ?: return
         setPet(p.copy(nickname = name), chirp = false)
+    }
+
+    fun setShell(id: String) {
+        _shell.value = id
+        val ctx = app ?: return
+        ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putString(KEY_SHELL, id).apply()
     }
 
     fun setTarget(id: CharacterId) {
