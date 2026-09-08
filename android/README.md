@@ -4,7 +4,7 @@ Native Jetpack Compose app — **not** a WebView. Lives on the `android` branch 
 
 The P1 engine, LCD, care buttons, Match the device, file backups, and English/Ukrainian copy all live in Kotlin.
 
-The shell still does **not** beep for poop or sickness. The phone does, with exact alarms on the alarm stream even when Hatchwatch is closed.
+The shell still does **not** beep for poop or sickness. The phone does, with clock-grade exact alarms even when Hatchwatch is closed or the screen is off.
 
 Backups are the same `hatchwatch-v1` JSON as the website. Save a file here, open it there — or paste the short copy. Google Drive sign-in is website-only for now.
 
@@ -18,7 +18,9 @@ Once the pet is an adult (evolved in the app **or** matched on the device), the 
 4. Let Gradle sync. SDK 35 is requested; Studio can install it. The project downloads a JDK 17 toolchain for compiling if needed.
 5. Use the **app** run configuration (green triangle). Plug in a phone (USB debugging) or start an emulator. minSdk is 26 (Android 8).
 
-First launch asks for **notifications** and **exact alarms**. Allow both, or poop / skull / attention chirps will be silent when the screen is off. If Doze still delays them, exempt Hatchwatch from battery optimization.
+First launch asks for **notifications**, **exact alarms**, and **unrestricted battery**. Allow all three. Care alerts are booked with `AlarmManager.setAlarmClock` so they fire with the app swiped away. A 3-hour watchdog rebooks them if the phone slept through a window. Reboot / timezone / app-update also rebook.
+
+On Xiaomi / HyperOS / some Samsungs: Settings → Apps → Hatchwatch → Battery → **Unrestricted**, and enable Autostart if that toggle exists. Force-stopping the app from system settings still cancels Android alarms until you open it once.
 
 ## Gradle JDK must be 17 or 21
 
@@ -43,9 +45,9 @@ If the dropdown is empty: **Run → Edit Configurations → + → Android App** 
 - Same P1 timers as the website: hunger, happy, poop, scheduled skull, misbehave after heart drops
 - Companion checks: **On the shell** / **Not on the shell** — the phone never invents poop or a skull
 - Replica vs original 1996–97 firmware
-- `AlarmManager.setExactAndAllowWhileIdle` + `STREAM_ALARM` chirps
+- `AlarmManager.setAlarmClock` for the next care event (Doze cannot defer it) plus exact idle alarms for the rest
 - 2-minute warning before a 15-minute care penalty
-- Reschedule on reboot
+- Reschedule on reboot, time change, timezone change, and app update
 - File save / open / paste so a run can move between the phone app and the website
 - Grown form is definitive on the Growth path card (same as the website)
 
