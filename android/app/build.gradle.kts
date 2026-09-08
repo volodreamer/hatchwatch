@@ -22,6 +22,24 @@ fun hatchwatchKeystore(): File {
     return jks
 }
 
+fun hatchwatchIflashFont(): File {
+    val ttf = file("src/main/res/font/iflash_502.ttf")
+    val dir = rootProject.file("fonts")
+    val aa = File(dir, "iflash_502.ttf.b64.aa")
+    val ab = File(dir, "iflash_502.ttf.b64.ab")
+    val single = File(dir, "iflash_502.ttf.b64")
+    val b64 = when {
+        aa.exists() && ab.exists() -> aa.readText() + ab.readText()
+        single.exists() -> single.readText()
+        else -> error("Missing iFlash 502 payload in android/fonts/")
+    }
+    ttf.parentFile.mkdirs()
+    ttf.writeBytes(Base64.getDecoder().decode(b64.filter { !it.isWhitespace() }))
+    return ttf
+}
+
+hatchwatchIflashFont()
+
 android {
     namespace = "com.hatchwatch.app"
     compileSdk = 35
@@ -30,8 +48,8 @@ android {
         applicationId = "com.hatchwatch.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 4
-        versionName = "2.1.1"
+        versionCode = 5
+        versionName = "2.1.2"
     }
 
     signingConfigs {

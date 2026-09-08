@@ -8,3 +8,4 @@ local.properties
 .cxx/
 captains.log
 keystore/*.jks
+app/src/main/res/font/*.ttf
