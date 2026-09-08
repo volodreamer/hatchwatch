@@ -15,14 +15,22 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.Icon
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -33,13 +41,18 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.hatchwatch.app.engine.CharacterId
+import kotlin.math.roundToInt
 import kotlinx.coroutines.delay
+
+data class HwOption(val id: String, val label: String, val swatch: Color? = null)
+data class HwOptionGroup(val title: String?, val items: List<HwOption>)
 
 @Composable
 fun HwButton(
@@ -73,6 +86,160 @@ fun HwButton(
                 Icon(icon, contentDescription = label, tint = fg, modifier = Modifier.size(20.dp))
             }
             Text(label, color = fg, fontSize = 12.sp, fontWeight = FontWeight.Medium)
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun HwSelect(
+    label: String,
+    value: String,
+    groups: List<HwOptionGroup>,
+    onSelect: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val items = groups.flatMap { it.items }
+    val selected = items.firstOrNull { it.id == value } ?: items.firstOrNull()
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Text(label.uppercase(), color = HwMuted, fontSize = 11.sp, letterSpacing = 1.4.sp, fontWeight = FontWeight.Medium)
+        ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
+            OutlinedTextField(
+                value = selected?.label ?: "",
+                onValueChange = {},
+                readOnly = true,
+                singleLine = true,
+                modifier = Modifier
+                    .menuAnchor()
+                    .fillMaxWidth(),
+                leadingIcon = selected?.swatch?.let { color ->
+                    {
+                        Box(
+                            Modifier
+                                .size(16.dp)
+                                .clip(RoundedCornerShape(4.dp))
+                                .background(color)
+                                .border(1.dp, HwBorder, RoundedCornerShape(4.dp)),
+                        )
+                    }
+                },
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedTextColor = HwFg,
+                    unfocusedTextColor = HwFg,
+                    focusedBorderColor = HwPrimary,
+                    unfocusedBorderColor = HwBorder,
+                    focusedContainerColor = HwSurface2,
+                    unfocusedContainerColor = HwSurface2,
+                    focusedTrailingIconColor = HwFg,
+                    unfocusedTrailingIconColor = HwMuted,
+                    focusedLeadingIconColor = HwFg,
+                    unfocusedLeadingIconColor = HwFg,
+                    cursorColor = HwFg,
+                ),
+                shape = RoundedCornerShape(12.dp),
+            )
+            ExposedDropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+                modifier = Modifier.background(HwSurface),
+            ) {
+                groups.forEach { group ->
+                    if (group.title != null) {
+                        Text(
+                            group.title,
+                            color = HwMuted,
+                            fontSize = 11.sp,
+                            letterSpacing = 1.2.sp,
+                            fontWeight = FontWeight.Medium,
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                        )
+                    }
+                    group.items.forEach { item ->
+                        DropdownMenuItem(
+                            text = { Text(item.label, color = HwFg, fontSize = 15.sp) },
+                            onClick = {
+                                onSelect(item.id)
+                                expanded = false
+                            },
+                            leadingIcon = item.swatch?.let { color ->
+                                {
+                                    Box(
+                                        Modifier
+                                            .size(16.dp)
+                                            .clip(RoundedCornerShape(4.dp))
+                                            .background(color)
+                                            .border(1.dp, HwBorder, RoundedCornerShape(4.dp)),
+                                    )
+                                }
+                            },
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun HwSliderTile(
+    label: String,
+    value: Int,
+    min: Int,
+    max: Int,
+    modifier: Modifier = Modifier,
+    step: Int = 1,
+    onChange: (Int) -> Unit,
+) {
+    Column(
+        modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(HwSurface2)
+            .border(1.dp, HwBorder, RoundedCornerShape(12.dp))
+            .padding(horizontal = 10.dp, vertical = 8.dp),
+    ) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+            Text(label.uppercase(), color = HwMuted, fontSize = 10.sp, letterSpacing = 1.1.sp, fontWeight = FontWeight.Medium)
+            Text("$value", color = HwFg, fontFamily = HwPixel, fontSize = 18.sp)
+        }
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                "−",
+                color = HwFg,
+                fontSize = 20.sp,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(8.dp))
+                    .clickable { onChange((value - step).coerceAtLeast(min)) }
+                    .padding(horizontal = 8.dp, vertical = 4.dp),
+            )
+            Slider(
+                value = value.toFloat(),
+                onValueChange = { raw ->
+                    val snapped = ((raw / step).roundToInt() * step).coerceIn(min, max)
+                    onChange(snapped)
+                },
+                valueRange = min.toFloat()..max.toFloat(),
+                steps = ((max - min) / step - 1).coerceAtLeast(0),
+                modifier = Modifier.weight(1f),
+                colors = SliderDefaults.colors(
+                    thumbColor = HwFg,
+                    activeTrackColor = HwFg,
+                    inactiveTrackColor = HwBorder,
+                    activeTickColor = HwFg,
+                    inactiveTickColor = HwFaint,
+                ),
+            )
+            Text(
+                "+",
+                color = HwFg,
+                fontSize = 20.sp,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(8.dp))
+                    .clickable { onChange((value + step).coerceAtMost(max)) }
+                    .padding(horizontal = 8.dp, vertical = 4.dp),
+            )
         }
     }
 }

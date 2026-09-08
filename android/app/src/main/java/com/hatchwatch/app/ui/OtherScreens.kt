@@ -18,12 +18,13 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -237,16 +238,38 @@ fun SettingsSheet(locale: String, pet: Pet, onClose: () -> Unit) {
     val ctx = LocalContext.current
     var confirmEnd by remember { mutableStateOf(false) }
     val notifPerm = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
+    val shellId = hwNormalizeShell(PetStore.shell.collectAsState().value)
     ModalBottomSheet(onDismissRequest = onClose, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true), containerColor = HwSurface) {
-        Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Column(
+            Modifier
+                .verticalScroll(rememberScrollState())
+                .padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
+        ) {
             Text(HwCopy.t(locale, "set.title"), color = HwFg, fontFamily = HwPixel, fontSize = 24.sp)
             LangRow(locale)
-            Text(HwCopy.t(locale, "set.fw"), color = HwMuted)
+            Text(HwCopy.t(locale, "set.fw"), color = HwMuted, fontSize = 11.sp, letterSpacing = 1.4.sp)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
                 HwButton(HwCopy.t(locale, "setup.fw.replica"), onClick = { PetStore.setFirmware(Firmware.replica) }, primary = pet.firmware == Firmware.replica, modifier = Modifier.weight(1f))
                 HwButton(HwCopy.t(locale, "setup.fw.vintage"), onClick = { PetStore.setFirmware(Firmware.vintage) }, primary = pet.firmware == Firmware.vintage, modifier = Modifier.weight(1f))
             }
-            Text(HwCopy.t(locale, "set.sound"), color = HwMuted)
+            HwSelect(
+                label = HwCopy.t(locale, "theme.title"),
+                value = shellId,
+                groups = listOf(
+                    HwOptionGroup(
+                        HwCopy.t(locale, "theme.classic"),
+                        HwClassicShells.map { HwOption(it.id, HwCopy.t(locale, "theme.${it.id}"), it.bg) },
+                    ),
+                    HwOptionGroup(
+                        HwCopy.t(locale, "theme.modern"),
+                        HwModernShells.map { HwOption(it.id, HwCopy.t(locale, "theme.${it.id}"), it.bg) },
+                    ),
+                ),
+                onSelect = { PetStore.setShell(it) },
+            )
+            Text(HwCopy.t(locale, "theme.lead"), color = HwMuted, fontSize = 13.sp)
+            Text(HwCopy.t(locale, "set.sound"), color = HwMuted, fontSize = 11.sp, letterSpacing = 1.4.sp)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
                 HwButton(if (pet.soundOn) "On" else "Off", onClick = {
                     val next = !pet.soundOn
@@ -305,23 +328,42 @@ fun SyncSheet(locale: String, pet: Pet, onClose: () -> Unit) {
         ) {
             Text(HwCopy.t(locale, "sync.title"), color = HwFg, fontFamily = HwPixel, fontSize = 24.sp)
             Text(HwCopy.t(locale, "sync.lead"), color = HwMuted, fontSize = 13.sp)
-            Text(HwCopy.t(locale, "sync.form"), color = HwMuted)
-            forms.chunked(3).forEach { row ->
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.fillMaxWidth()) {
-                    row.forEach { id ->
-                        HwButton(Characters.name(id), onClick = { form = id; restart = id != pet.form }, primary = form == id, modifier = Modifier.weight(1f))
-                    }
-                    repeat(3 - row.size) { Spacer(Modifier.weight(1f)) }
-                }
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                PixelSprite(form, sleeping = false, sick = sick, modifier = Modifier.size(56.dp))
+                HwSelect(
+                    label = HwCopy.t(locale, "sync.form"),
+                    value = form.id,
+                    groups = listOf(
+                        HwOptionGroup(null, forms.map { HwOption(it.id, Characters.name(it)) }),
+                    ),
+                    onSelect = { id ->
+                        val next = CharacterId.from(id)
+                        form = next
+                        restart = next != pet.form
+                    },
+                    modifier = Modifier.weight(1f),
+                )
             }
-            NumRow(HwCopy.t(locale, "sync.hunger"), hunger, 0, 4) { hunger = it }
-            NumRow(HwCopy.t(locale, "sync.happy"), happy, 0, 4) { happy = it }
-            NumRow(HwCopy.t(locale, "sync.disc"), discipline, 0, 100, 25) { discipline = it }
-            NumRow(HwCopy.t(locale, "sync.weight"), weight, 5, 99) { weight = it }
-            NumRow(HwCopy.t(locale, "sync.care"), care, 0, 20) { care = it }
-            NumRow(HwCopy.t(locale, "sync.dmiss"), disc, 0, 20) { disc = it }
-            NumRow(HwCopy.t(locale, "sync.poop"), poop, 0, 4) { poop = it }
-            NumRow(HwCopy.t(locale, "sync.age"), age, 0, 20) { age = it }
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                HwSliderTile(HwCopy.t(locale, "sync.hunger"), hunger, 0, 4, Modifier.weight(1f)) { hunger = it }
+                HwSliderTile(HwCopy.t(locale, "sync.happy"), happy, 0, 4, Modifier.weight(1f)) { happy = it }
+            }
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                HwSliderTile(HwCopy.t(locale, "sync.disc"), discipline, 0, 100, Modifier.weight(1f), step = 25) { discipline = it }
+                HwSliderTile(HwCopy.t(locale, "sync.weight"), weight, 5, 99, Modifier.weight(1f)) { weight = it }
+            }
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                HwSliderTile(HwCopy.t(locale, "sync.care"), care, 0, 20, Modifier.weight(1f)) { care = it }
+                HwSliderTile(HwCopy.t(locale, "sync.dmiss"), disc, 0, 20, Modifier.weight(1f)) { disc = it }
+            }
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                HwSliderTile(HwCopy.t(locale, "sync.poop"), poop, 0, 4, Modifier.weight(1f)) { poop = it }
+                HwSliderTile(HwCopy.t(locale, "sync.age"), age, 0, 20, Modifier.weight(1f)) { age = it }
+            }
             CheckRow(HwCopy.t(locale, "sync.skull"), sick) { sick = it }
             CheckRow(HwCopy.t(locale, "sync.attn"), attention) { attention = it }
             CheckRow(HwCopy.t(locale, "sync.evo"), restart || form != pet.form) { restart = it }
@@ -342,22 +384,17 @@ fun SyncSheet(locale: String, pet: Pet, onClose: () -> Unit) {
 }
 
 @Composable
-private fun NumRow(label: String, value: Int, min: Int, max: Int, step: Int = 1, onChange: (Int) -> Unit) {
-    Column {
-        Text("$label  $value", color = HwFg, fontSize = 14.sp)
-        Slider(
-            value = value.toFloat(),
-            onValueChange = { onChange((it / step).toInt() * step) },
-            valueRange = min.toFloat()..max.toFloat(),
-            steps = ((max - min) / step - 1).coerceAtLeast(0),
-        )
-    }
-}
-
-@Composable
 private fun CheckRow(label: String, checked: Boolean, onChange: (Boolean) -> Unit) {
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-        Checkbox(checked = checked, onCheckedChange = onChange)
+        Checkbox(
+            checked = checked,
+            onCheckedChange = onChange,
+            colors = CheckboxDefaults.colors(
+                checkedColor = HwFg,
+                uncheckedColor = HwBorder,
+                checkmarkColor = HwBg,
+            ),
+        )
         Text(label, color = HwFg, fontSize = 14.sp)
     }
 }

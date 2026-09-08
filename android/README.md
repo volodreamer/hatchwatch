@@ -10,7 +10,7 @@ Backups are the same `hatchwatch-v1` JSON as the website. Save a file here, open
 
 Once the pet is an adult (evolved in the app **or** matched on the device), the Growth path card locks to that form. Mistake counts stay on the card; it no longer predicts a different adult.
 
-Home uses the website **Carbon** palette by default (true black, grey tiles). Settings can switch to Garden, Classic yellow, or Ice. Care buttons use the same icons as the PWA. The LCD clock shows the date under the time. Titles, LCD labels, and pixel numbers use **iFlash 502** (same face as the website) for English and Ukrainian.
+Home uses the website **Carbon** palette by default (true black, grey tiles). Settings has a Shell dropdown with every website theme — classic 1997–98 replicas and modern / rerelease palettes. Care buttons use the same icons as the PWA. The LCD clock shows the date under the time. Titles, LCD labels, and pixel numbers use **iFlash 502** (same face as the website) for English and Ukrainian.
 
 ## Download an APK from GitHub
 
