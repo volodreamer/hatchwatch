@@ -1,6 +1,7 @@
 package com.hatchwatch.app.ui
 
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
@@ -188,6 +189,11 @@ fun HatchwatchTheme(content: @Composable () -> Unit) {
         labelSmall = TextStyle(fontFamily = FontFamily.SansSerif, fontWeight = FontWeight.Medium, fontSize = 11.sp, letterSpacing = 1.6.sp, color = palette.muted),
     )
     CompositionLocalProvider(LocalHwColors provides palette) {
-        MaterialTheme(colorScheme = scheme, typography = type, content = content)
+        MaterialTheme(colorScheme = scheme, typography = type) {
+            ProvideTextStyle(
+                value = TextStyle(fontSynthesis = FontSynthesis.None),
+                content = content,
+            )
+        }
     }
 }

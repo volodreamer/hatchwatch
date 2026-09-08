@@ -32,7 +32,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -62,7 +61,7 @@ fun PlanScreen(locale: String, derived: DerivedState) {
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Text(HwCopy.t(locale, "plan.kicker").uppercase(), color = HwPrimary, fontSize = 11.sp, letterSpacing = 2.sp)
-        Text(Characters.name(pet.targetId), color = HwFg, fontFamily = FontFamily.Monospace, fontSize = 28.sp, fontWeight = FontWeight.Bold)
+        Text(Characters.name(pet.targetId), color = HwFg, fontFamily = HwPixel, fontSize = 28.sp, fontWeight = FontWeight.Bold)
         Text(plan.headline, color = HwMuted)
         if (Evolution.isGrownForm(pet) && pet.form !in plan.path) {
             Text(
@@ -71,7 +70,7 @@ fun PlanScreen(locale: String, derived: DerivedState) {
             )
         }
         PathCardInline(locale, derived)
-        Text(HwCopy.t(locale, "plan.how"), color = HwFg, fontFamily = FontFamily.Monospace, fontSize = 18.sp)
+        Text(HwCopy.t(locale, "plan.how"), color = HwFg, fontFamily = HwPixel, fontSize = 18.sp)
         plan.steps.forEachIndexed { i, step ->
             SectionCard {
                 Text("${i + 1}. $step", color = HwFg, fontSize = 14.sp)
@@ -118,14 +117,14 @@ fun LogScreen(locale: String, pet: Pet) {
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Text(HwCopy.t(locale, "log.title"), color = HwFg, fontFamily = FontFamily.Monospace, fontSize = 28.sp, fontWeight = FontWeight.Bold)
+        Text(HwCopy.t(locale, "log.title"), color = HwFg, fontFamily = HwPixel, fontSize = 28.sp, fontWeight = FontWeight.Bold)
         Text("${pet.careMistakes} care / ${pet.discMistakes} disc", color = HwMuted)
         if (pet.events.isEmpty()) {
             Text(HwCopy.t(locale, "log.empty"), color = HwMuted)
         } else {
             pet.events.forEach { e ->
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Text(fmt.format(Date(e.at)), color = HwMuted, fontFamily = FontFamily.Monospace, modifier = Modifier.padding(top = 2.dp))
+                    Text(fmt.format(Date(e.at)), color = HwMuted, fontFamily = HwPixel, modifier = Modifier.padding(top = 2.dp))
                     Column {
                         Text(e.type.name.replace('_', ' '), color = HwFg, fontWeight = FontWeight.Medium)
                         if (e.note != null) Text(e.note, color = HwMuted, fontSize = 13.sp)
@@ -145,10 +144,10 @@ fun GuideScreen(locale: String) {
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Text(HwCopy.t(locale, "guide.title"), color = HwFg, fontFamily = FontFamily.Monospace, fontSize = 28.sp, fontWeight = FontWeight.Bold)
+        Text(HwCopy.t(locale, "guide.title"), color = HwFg, fontFamily = HwPixel, fontSize = 28.sp, fontWeight = FontWeight.Bold)
         Text(HwCopy.t(locale, "guide.lead"), color = HwMuted)
         SectionCard {
-            Text(HwCopy.t(locale, "guide.rule"), color = HwFg, fontFamily = FontFamily.Monospace, fontSize = 18.sp)
+            Text(HwCopy.t(locale, "guide.rule"), color = HwFg, fontFamily = HwPixel, fontSize = 18.sp)
             listOf("guide.r1", "guide.r2", "guide.r3", "guide.r4", "guide.r5", "guide.r6").forEach {
                 Text("• ${HwCopy.t(locale, it)}", color = HwMuted, fontSize = 14.sp)
             }
@@ -159,13 +158,13 @@ fun GuideScreen(locale: String) {
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
                     PixelSprite(id, sleeping = false, sick = false, modifier = Modifier.size(56.dp))
                     Column {
-                        Text(c.name, color = HwFg, fontFamily = FontFamily.Monospace, fontSize = 18.sp)
+                        Text(c.name, color = HwFg, fontFamily = HwPixel, fontSize = 18.sp)
                         Text(c.stage.name, color = HwMuted, fontSize = 12.sp)
                     }
                 }
                 Text(c.blurb, color = HwMuted, fontSize = 13.sp)
-                Text("Hunger ${c.hungryLossMin} min · Happy ${c.happyLossMin} min · Skull ${c.sicknessMin} min", color = HwFg, fontSize = 12.sp, fontFamily = FontFamily.Monospace)
-                Text("Poop every ${Characters.POOP_INTERVAL_MIN[id]} min · shots ${c.shots} · ${c.lifespan}", color = HwMuted, fontSize = 12.sp, fontFamily = FontFamily.Monospace)
+                Text("Hunger ${c.hungryLossMin} min · Happy ${c.happyLossMin} min · Skull ${c.sicknessMin} min", color = HwFg, fontSize = 12.sp, fontFamily = HwPixel)
+                Text("Poop every ${Characters.POOP_INTERVAL_MIN[id]} min · shots ${c.shots} · ${c.lifespan}", color = HwMuted, fontSize = 12.sp, fontFamily = HwPixel)
             }
         }
     }
@@ -240,7 +239,7 @@ fun SettingsSheet(locale: String, pet: Pet, onClose: () -> Unit) {
     val notifPerm = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
     ModalBottomSheet(onDismissRequest = onClose, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true), containerColor = HwSurface) {
         Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text(HwCopy.t(locale, "set.title"), color = HwFg, fontFamily = FontFamily.Monospace, fontSize = 24.sp)
+            Text(HwCopy.t(locale, "set.title"), color = HwFg, fontFamily = HwPixel, fontSize = 24.sp)
             LangRow(locale)
             Text(HwCopy.t(locale, "set.fw"), color = HwMuted)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
@@ -260,7 +259,7 @@ fun SettingsSheet(locale: String, pet: Pet, onClose: () -> Unit) {
                     PetStore.setNotif(next)
                 }, primary = pet.notifOn, modifier = Modifier.weight(1f))
             }
-            Text(HwCopy.t(locale, "set.backup"), color = HwFg, fontFamily = FontFamily.Monospace)
+            Text(HwCopy.t(locale, "set.backup"), color = HwFg, fontFamily = HwPixel)
             Text(HwCopy.t(locale, "set.backup.d"), color = HwMuted, fontSize = 13.sp)
             BackupRestoreSection(locale, showSave = true, onRestored = onClose)
             HwButton(HwCopy.t(locale, "set.end"), onClick = { confirmEnd = true }, danger = true, modifier = Modifier.fillMaxWidth())
@@ -304,7 +303,7 @@ fun SyncSheet(locale: String, pet: Pet, onClose: () -> Unit) {
                 .padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            Text(HwCopy.t(locale, "sync.title"), color = HwFg, fontFamily = FontFamily.Monospace, fontSize = 24.sp)
+            Text(HwCopy.t(locale, "sync.title"), color = HwFg, fontFamily = HwPixel, fontSize = 24.sp)
             Text(HwCopy.t(locale, "sync.lead"), color = HwMuted, fontSize = 13.sp)
             Text(HwCopy.t(locale, "sync.form"), color = HwMuted)
             forms.chunked(3).forEach { row ->

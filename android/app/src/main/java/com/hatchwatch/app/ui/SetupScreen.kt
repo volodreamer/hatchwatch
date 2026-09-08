@@ -32,7 +32,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -67,7 +66,7 @@ fun SetupScreen(locale: String) {
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Text(HwCopy.t(locale, "setup.kicker").uppercase(), color = HwPrimary, fontSize = 11.sp, letterSpacing = 2.sp, fontWeight = FontWeight.Medium)
-        Text("Hatchwatch", color = HwFg, fontSize = 36.sp, fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold)
+        Text("Hatchwatch", color = HwFg, fontSize = 36.sp, fontFamily = HwPixel, fontWeight = FontWeight.Bold)
         Text(HwCopy.t(locale, "setup.blurb"), color = HwMuted, fontSize = 15.sp)
         LangRow(locale)
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -95,7 +94,7 @@ fun SetupScreen(locale: String) {
                                 Text(plan.difficulty.uppercase(), color = HwPrimary, fontSize = 10.sp, letterSpacing = 1.2.sp)
                                 Spacer(Modifier.height(4.dp))
                                 PixelSprite(id, sleeping = false, sick = false, modifier = Modifier.size(48.dp))
-                                Text(Characters.name(id), color = HwFg, fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold)
+                                Text(Characters.name(id), color = HwFg, fontFamily = HwPixel, fontWeight = FontWeight.Bold)
                                 Text(plan.headline, color = HwMuted, fontSize = 12.sp)
                             }
                         }
@@ -124,7 +123,7 @@ fun SetupScreen(locale: String) {
                     }
                 }
                 if (whenStart == "custom") {
-                    Text(stamp.format(Date(customAt)), color = HwFg, fontFamily = FontFamily.Monospace, fontSize = 18.sp)
+                    Text(stamp.format(Date(customAt)), color = HwFg, fontFamily = HwPixel, fontSize = 18.sp)
                     HwButton(HwCopy.t(locale, "setup.pick"), onClick = {
                         val cal = Calendar.getInstance().apply { timeInMillis = customAt }
                         DatePickerDialog(
@@ -197,7 +196,7 @@ fun SetupScreen(locale: String) {
             }
         }
         HwButton(HwCopy.t(locale, "setup.demo"), onClick = { PetStore.startDemo() }, modifier = Modifier.fillMaxWidth())
-        Text(HwCopy.t(locale, "set.backup"), color = HwFg, fontFamily = FontFamily.Monospace, fontSize = 16.sp)
+        Text(HwCopy.t(locale, "set.backup"), color = HwFg, fontFamily = HwPixel, fontSize = 16.sp)
         Text(HwCopy.t(locale, "set.backup.d"), color = HwMuted, fontSize = 13.sp)
         BackupRestoreSection(locale, showSave = false)
         Spacer(Modifier.height(24.dp))
