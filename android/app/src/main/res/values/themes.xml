@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.Hatchwatch" parent="android:Theme.Material.NoActionBar">
+        <item name="android:statusBarColor">#0E120C</item>
+        <item name="android:navigationBarColor">#0E120C</item>
+        <item name="android:windowBackground">#0E120C</item>
+        <item name="android:colorPrimary">#B7D46A</item>
+    </style>
+</resources>
