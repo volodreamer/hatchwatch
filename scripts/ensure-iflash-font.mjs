@@ -16,3 +16,19 @@ export function ensureIflashFont(root = join(dirname(fileURLToPath(import.meta.u
   writeFileSync(ttf, Buffer.from(readFileSync(b64, "utf8").replace(/\s+/g, ""), "base64"));
   return ttf;
 }
+
+const entry = process.argv[1];
+if (entry) {
+  try {
+    if (fileURLToPath(import.meta.url) === entry) {
+      const out = ensureIflashFont();
+      if (!existsSync(out)) {
+        console.error("[hatchwatch] failed to materialize iFlash 502");
+        process.exit(1);
+      }
+      console.log("[hatchwatch] iFlash ready:", out);
+    }
+  } catch {
+    /* imported as a module */
+  }
+}

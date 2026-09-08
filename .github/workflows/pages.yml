@@ -24,6 +24,7 @@ jobs:
           node-version: "22"
           cache: npm
       - run: npm install
+      - run: node scripts/ensure-iflash-font.mjs
       - run: npm run build:pages
         env:
           VITE_GOOGLE_CLIENT_ID: ${{ vars.GOOGLE_CLIENT_ID }}
