@@ -84,9 +84,9 @@ fun HatchwatchRoot() {
                                 icon = { Icon(item.icon, contentDescription = HwCopy.t(locale, item.key)) },
                                 label = { Text(HwCopy.t(locale, item.key), fontSize = 11.sp) },
                                 colors = NavigationBarItemDefaults.colors(
-                                    selectedIconColor = HwPrimaryFg,
-                                    selectedTextColor = HwPrimary,
-                                    indicatorColor = HwPrimary,
+                                    selectedIconColor = HwFg,
+                                    selectedTextColor = HwFg,
+                                    indicatorColor = HwSurface2,
                                     unselectedIconColor = HwMuted,
                                     unselectedTextColor = HwMuted,
                                 ),
