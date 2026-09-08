@@ -10,6 +10,19 @@ Backups are the same `hatchwatch-v1` JSON as the website. Save a file here, open
 
 Once the pet is an adult (evolved in the app **or** matched on the device), the Growth path card locks to that form. Mistake counts stay on the card; it no longer predicts a different adult.
 
+## Download an APK from GitHub
+
+You do not need Android Studio on the phone machine. Each push to `android` (and a manual button) builds `hatchwatch-debug.apk`.
+
+1. Open [Actions → Android APK](https://github.com/volodreamer/hatchwatch/actions/workflows/android-apk.yml).
+2. Pick the latest green run on the `android` branch. First run after this commit takes a few minutes.
+3. **hatchwatch-debug-apk** → download the zip → unzip `hatchwatch-debug.apk`.
+4. On the phone: allow install from the browser/Files app, then open the APK.
+
+To build without a new commit: **Actions → Android APK → Run workflow → branch `android` → Run workflow**.
+
+This is a debug APK (debug keystore). Fine for your own phone. Play Store / a signed release needs a keystore later.
+
 ## Open in Android Studio
 
 1. Install [Android Studio](https://developer.android.com/studio) (Ladybug / 2024.2+ is fine).
