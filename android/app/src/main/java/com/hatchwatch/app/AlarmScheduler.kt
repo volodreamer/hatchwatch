@@ -14,7 +14,8 @@ import com.hatchwatch.app.engine.Pet
 import com.hatchwatch.app.engine.Simulate
 
 object AlarmScheduler {
-    const val CHANNEL_ID = "hatchwatch-care"
+    const val CHANNEL_ID = "hatchwatch-care-v2"
+    private const val LEGACY_CHANNEL_ID = "hatchwatch-care"
     private const val MAX = 16
     private const val WATCHDOG = 16
     private const val WATCHDOG_MS = 3L * 60 * 60 * 1000
@@ -22,19 +23,18 @@ object AlarmScheduler {
     fun ensureChannel(context: Context) {
         if (Build.VERSION.SDK_INT < 26) return
         val mgr = context.getSystemService(NotificationManager::class.java) ?: return
-        val existing = mgr.getNotificationChannel(CHANNEL_ID)
-        if (existing != null && existing.importance >= NotificationManager.IMPORTANCE_HIGH) return
-        if (existing != null) mgr.deleteNotificationChannel(CHANNEL_ID)
+        mgr.deleteNotificationChannel(LEGACY_CHANNEL_ID)
+        if (mgr.getNotificationChannel(CHANNEL_ID) != null) return
         val attrs = AudioAttributes.Builder()
-            .setUsage(AudioAttributes.USAGE_ALARM)
+            .setUsage(AudioAttributes.USAGE_NOTIFICATION)
             .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
             .build()
-        val ch = NotificationChannel(CHANNEL_ID, "Care chirps", NotificationManager.IMPORTANCE_HIGH).apply {
-            description = "Hunger, sleep, poop, skull, and attention — even when Hatchwatch is closed."
+        val ch = NotificationChannel(CHANNEL_ID, "Care chirps", NotificationManager.IMPORTANCE_DEFAULT).apply {
+            description = "Hunger, sleep, poop, skull, and attention. Follows the phone's sound, vibrate, silent, and Do Not Disturb."
             setSound(android.provider.Settings.System.DEFAULT_NOTIFICATION_URI, attrs)
             enableVibration(true)
             enableLights(true)
-            setBypassDnd(true)
+            setBypassDnd(false)
         }
         mgr.createNotificationChannel(ch)
     }

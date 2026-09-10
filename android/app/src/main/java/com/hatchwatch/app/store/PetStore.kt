@@ -83,7 +83,7 @@ object PetStore {
             (prev.checkSickAt == null && next.checkSickAt != null) ||
             (prev.checkDiscAt == null && next.checkDiscAt != null)
         if (!drop) return
-        if (next.soundOn) ChirpPlayer.play(ctx, false)
+        if (next.soundOn) ChirpPlayer.play(ctx, false, respectPhone = true)
         if (!next.notifOn) return
         val title: String
         val body: String
@@ -130,7 +130,7 @@ object PetStore {
         val key = "$kind:${stamp ?: 0}"
         if (alreadyAlerted(key)) return
         markAlerted(key)
-        CareNotifier.show(ctx, title, body, kind, false)
+        CareNotifier.show(ctx, title, body, kind, false, suppressAlert = next.soundOn)
     }
 
     private fun setPet(next: Pet?, chirp: Boolean = true) {

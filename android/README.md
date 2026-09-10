@@ -4,7 +4,7 @@ Native Jetpack Compose app — **not** a WebView. Lives on the `android` branch 
 
 The P1 engine, LCD, care buttons, Match the device, file backups, and English/Ukrainian copy all live in Kotlin.
 
-The shell still does **not** beep for poop or sickness. The phone does, with clock-grade exact alarms even when Hatchwatch is closed or the screen is off.
+The shell still does **not** beep for poop or sickness. The phone does, with clock-grade exact alarms even when Hatchwatch is closed or the screen is off. Chirps follow the phone ringer (**sound / vibrate / silent**) and **Do Not Disturb** — they no longer use the alarm stream.
 
 Backups are the same `hatchwatch-v1` JSON as the website. Save a file here, open it there — or paste the short copy. Google Drive sign-in is website-only for now.
 

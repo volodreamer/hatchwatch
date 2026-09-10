@@ -17,8 +17,10 @@ class AlarmReceiver : BroadcastReceiver() {
             val body = intent.getStringExtra("body") ?: "Check the shell."
             val warn = intent.getBooleanExtra("warn", false)
             if (kind != "watchdog") {
-                if (pet?.soundOn != false) ChirpPlayer.play(context, warn)
-                if (pet?.notifOn != false) CareNotifier.show(context, title, body, kind, warn)
+                val soundOn = pet?.soundOn != false
+                val notifOn = pet?.notifOn != false
+                if (soundOn) ChirpPlayer.play(context, warn, respectPhone = true)
+                if (notifOn) CareNotifier.show(context, title, body, kind, warn, suppressAlert = soundOn)
             }
             if (pet != null) AlarmScheduler.sync(context, pet)
         } finally {
