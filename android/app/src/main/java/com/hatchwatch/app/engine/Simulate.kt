@@ -97,7 +97,7 @@ object Simulate {
     }
 
     internal fun nextDrainAt(lastAt: Long, hearts: Int, lossMin: Int, wake: Int?, sleep: Int?): Long? {
-        if (hearts <= 0) return null
+        if (lossMin >= 900) return null
         return Clock.addAwakeMs(lastAt, lossMin * 60L * 1000, wake, sleep)
     }
 
@@ -190,6 +190,10 @@ object Simulate {
 
     private fun dropHeart(pet: Pet, meter: String, at: Long): Pet {
         var p = pet
+        val before = if (meter == "hunger") p.hunger else p.happy
+        if (before <= 0) {
+            return if (meter == "hunger") p.copy(hungerAt = at) else p.copy(happyAt = at)
+        }
         p = if (meter == "hunger") {
             val h = maxOf(0, p.hunger - 1)
             p.copy(hunger = h, hungerAt = at, hungerWindowAt = if (h == 0) at else p.hungerWindowAt)

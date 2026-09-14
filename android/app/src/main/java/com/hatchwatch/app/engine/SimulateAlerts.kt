@@ -31,15 +31,15 @@ fun simDerive(pet: Pet, now: Long): DerivedState {
         val due = p.hungerWindowAt + Characters.CARE_WINDOW_MS
         alerts += CareAlert("hunger-call", AlertKind.hunger, "Hungry — 15 minute window", "Empty hunger hearts. Feed a meal before the call times out.", due, urgencyFor(due, now, true), "Food → Meal  (B)")
     } else if (nextHunger != null && p.hunger == 1) {
-        alerts += CareAlert("hunger-soon", AlertKind.hunger, "Last hunger heart", "Next drop empties the meter and starts a care call.", nextHunger, urgencyFor(nextHunger, now), "Food → Meal  (B)")
+        alerts += CareAlert("hunger-soon", AlertKind.hunger, "Last hunger heart", "Next drop empties the meter and starts a care call. Feeding does not restart this countdown.", nextHunger, urgencyFor(nextHunger, now), "Food → Meal  (B)")
     } else if (nextHunger != null) {
-        alerts += CareAlert("hunger-drain", AlertKind.hunger, "Hunger dropping", "${p.hunger} hearts left · one drops every ${Characters.hungerLossMin(p.form, p.age)} min awake.", nextHunger, urgencyFor(nextHunger, now), "Food → Meal  (B)")
+        alerts += CareAlert("hunger-drain", AlertKind.hunger, "Hunger dropping", "${p.hunger} hearts left · one drops every ${Characters.hungerLossMin(p.form, p.age)} min awake. Meals do not reset this clock.", nextHunger, urgencyFor(nextHunger, now), "Food → Meal  (B)")
     }
     if (p.happyWindowAt != null) {
         val due = p.happyWindowAt + Characters.CARE_WINDOW_MS
         alerts += CareAlert("happy-call", AlertKind.happy, "Unhappy — 15 minute window", "Empty happy hearts. Play a game or give a snack.", due, urgencyFor(due, now, true), "Game  (win 3 of 5)")
     } else if (nextHappy != null && p.happy == 1) {
-        alerts += CareAlert("happy-soon", AlertKind.happy, "Last happy heart", "Next drop starts a care call.", nextHappy, urgencyFor(nextHappy, now), "Game  (win 3 of 5)")
+        alerts += CareAlert("happy-soon", AlertKind.happy, "Last happy heart", "Next drop starts a care call. Games and snacks do not restart this countdown.", nextHappy, urgencyFor(nextHappy, now), "Game  (win 3 of 5)")
     }
     if (p.sleepWindowAt != null && p.lightsOn) {
         val due = p.sleepWindowAt + Characters.CARE_WINDOW_MS

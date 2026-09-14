@@ -9,13 +9,13 @@ fun simApplyAction(pet: Pet, type: ActionType, at: Long): Pet {
         ActionType.meal -> {
             if (p.sleeping) return Simulate.push(p, type, at, "Sleeping — meal ignored on the device")
             if (p.hunger >= 4) return Simulate.push(p, type, at, "Full — it may refuse the meal")
-            p = p.copy(hunger = min(4, p.hunger + 1), hungerAt = at, hungerWindowAt = null, weight = min(s.maxWeight, p.weight + 1))
+            p = p.copy(hunger = min(4, p.hunger + 1), hungerWindowAt = null, weight = min(s.maxWeight, p.weight + 1))
             Simulate.push(p, type, at, "Meal · hunger ${p.hunger}/4 · ${p.weight}g")
         }
         ActionType.snack -> {
             if (p.sleeping) return Simulate.push(p, type, at, "Sleeping — snack ignored on the device")
             p = p.copy(
-                happy = min(4, p.happy + 1), happyAt = at, happyWindowAt = null,
+                happy = min(4, p.happy + 1), happyWindowAt = null,
                 weight = min(s.maxWeight, p.weight + 2), snackCount = p.snackCount + 1,
             )
             val replicaSnack = p.firmware == Firmware.replica &&
@@ -26,7 +26,7 @@ fun simApplyAction(pet: Pet, type: ActionType, at: Long): Pet {
         }
         ActionType.game -> {
             if (p.sleeping) return Simulate.push(p, type, at, "Sleeping — game ignored")
-            p = p.copy(happy = min(4, p.happy + 1), happyAt = at, happyWindowAt = null, weight = maxOf(s.minWeight, p.weight - 1))
+            p = p.copy(happy = min(4, p.happy + 1), happyWindowAt = null, weight = maxOf(s.minWeight, p.weight - 1))
             Simulate.push(p, type, at, "Game won · happy ${p.happy}/4 · ${p.weight}g")
         }
         ActionType.clean -> {
@@ -120,10 +120,10 @@ fun simSyncPet(pet: Pet, patch: SyncPatch, at: Long = System.currentTimeMillis()
         lastTickAt = at,
     )
     if (patch.hunger != null && patch.hunger != pet.hunger) {
-        p = p.copy(hungerAt = at, hungerWindowAt = if (p.hunger == 0) at else null)
+        p = p.copy(hungerWindowAt = if (p.hunger == 0) at else null)
     }
     if (patch.happy != null && patch.happy != pet.happy) {
-        p = p.copy(happyAt = at, happyWindowAt = if (p.happy == 0) at else null)
+        p = p.copy(happyWindowAt = if (p.happy == 0) at else null)
     }
     if (patch.poop != null && patch.poop != pet.poop) p = p.copy(poopAt = at)
     if (patch.sick == false) p = p.copy(medicineGiven = 0)
