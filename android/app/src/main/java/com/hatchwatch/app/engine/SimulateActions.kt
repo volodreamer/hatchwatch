@@ -105,33 +105,28 @@ fun simConfirmOnShell(pet: Pet, kind: String, at: Long = System.currentTimeMilli
 }
 
 fun simSyncPet(pet: Pet, patch: SyncPatch, at: Long = System.currentTimeMillis(), restartStage: Boolean = false, attention: Boolean? = null): Pet {
-    val formChanged = patch.form != null && patch.form != pet.form
-    var p = pet.copy(
-        hunger = patch.hunger ?: pet.hunger,
-        happy = patch.happy ?: pet.happy,
-        discipline = patch.discipline ?: pet.discipline,
-        weight = patch.weight ?: pet.weight,
-        careMistakes = patch.careMistakes ?: pet.careMistakes,
-        discMistakes = patch.discMistakes ?: pet.discMistakes,
-        poop = patch.poop ?: pet.poop,
-        sick = patch.sick ?: pet.sick,
-        form = patch.form ?: pet.form,
-        age = patch.age ?: pet.age,
+    val caught = Simulate.catchUp(pet, at)
+    val formChanged = patch.form != null && patch.form != caught.form
+    var p = caught.copy(
+        hunger = patch.hunger ?: caught.hunger,
+        happy = patch.happy ?: caught.happy,
+        discipline = patch.discipline ?: caught.discipline,
+        weight = patch.weight ?: caught.weight,
+        careMistakes = patch.careMistakes ?: caught.careMistakes,
+        discMistakes = patch.discMistakes ?: caught.discMistakes,
+        poop = patch.poop ?: caught.poop,
+        sick = patch.sick ?: caught.sick,
+        form = patch.form ?: caught.form,
+        age = patch.age ?: caught.age,
         lastTickAt = at,
     )
-    if (patch.hunger != null && patch.hunger != pet.hunger) {
-        p = p.copy(
-            hungerWindowAt = if (p.hunger == 0) at else null,
-            hungerAt = if (patch.hunger < pet.hunger) at else p.hungerAt,
-        )
+    if (patch.hunger != null && patch.hunger != caught.hunger) {
+        p = p.copy(hungerWindowAt = if (p.hunger == 0) p.hungerWindowAt ?: at else null)
     }
-    if (patch.happy != null && patch.happy != pet.happy) {
-        p = p.copy(
-            happyWindowAt = if (p.happy == 0) at else null,
-            happyAt = if (patch.happy < pet.happy) at else p.happyAt,
-        )
+    if (patch.happy != null && patch.happy != caught.happy) {
+        p = p.copy(happyWindowAt = if (p.happy == 0) p.happyWindowAt ?: at else null)
     }
-    if (patch.poop != null && patch.poop != pet.poop) p = p.copy(poopAt = at)
+    if (patch.poop != null && patch.poop != caught.poop) p = p.copy(poopAt = at)
     if (patch.sick == false) p = p.copy(medicineGiven = 0)
     p = when (attention) {
         false -> p.copy(misbehaveAt = null, heartDecrements = 0)
@@ -141,7 +136,7 @@ fun simSyncPet(pet: Pet, patch: SyncPatch, at: Long = System.currentTimeMillis()
     if (formChanged || restartStage) {
         p = p.copy(
             stageStartedAt = at, heartDecrements = 0, misbehaveAt = null,
-            hungerAt = at, happyAt = at, weight = maxOf(p.weight, Characters.stats(p.form).minWeight),
+            weight = maxOf(p.weight, Characters.stats(p.form).minWeight),
         )
     }
     if (p.form == CharacterId.tamatchi || p.form == CharacterId.kuchitamatchi) {
