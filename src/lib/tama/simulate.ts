@@ -194,12 +194,12 @@ export function createDemoPet(now = Date.now()): Pet {
 
 function nextDrainAt(
   lastAt: number,
-  hearts: number,
+  _hearts: number,
   lossMin: number,
   wake: number | null,
   sleep: number | null,
 ): number | null {
-  if (hearts <= 0) return null;
+  if (lossMin >= 900) return null;
   return addAwakeMs(lastAt, lossMin * 60 * 1000, wake, sleep);
 }
 
@@ -310,6 +310,12 @@ function countDiscMiss(pet: Pet, at: number): Pet {
 
 function dropHeart(pet: Pet, meter: "hunger" | "happy", at: number): Pet {
   let p: Pet = { ...pet };
+  const before = meter === "hunger" ? p.hunger : p.happy;
+  if (before <= 0) {
+    if (meter === "hunger") p.hungerAt = at;
+    else p.happyAt = at;
+    return p;
+  }
   if (meter === "hunger") {
     p.hunger = Math.max(0, p.hunger - 1);
     p.hungerAt = at;
@@ -495,7 +501,6 @@ export function applyAction(pet: Pet, type: ActionType, at: number): Pet {
       if (p.sleeping) return pushEvent(p, "meal", at, "Sleeping — meal ignored on the device");
       if (p.hunger >= 4) return pushEvent(p, "meal", at, "Full — it may refuse the meal");
       p.hunger = Math.min(4, p.hunger + 1);
-      p.hungerAt = at;
       p.hungerWindowAt = null;
       p.weight = Math.min(s.maxWeight, p.weight + 1);
       const note =
@@ -508,7 +513,6 @@ export function applyAction(pet: Pet, type: ActionType, at: number): Pet {
     case "snack": {
       if (p.sleeping) return pushEvent(p, "snack", at, "Sleeping — snack ignored on the device");
       p.happy = Math.min(4, p.happy + 1);
-      p.happyAt = at;
       p.happyWindowAt = null;
       p.weight = Math.min(s.maxWeight, p.weight + 2);
       p.snackCount += 1;
@@ -533,7 +537,6 @@ export function applyAction(pet: Pet, type: ActionType, at: number): Pet {
     case "game": {
       if (p.sleeping) return pushEvent(p, "game", at, "Sleeping — game ignored");
       p.happy = Math.min(4, p.happy + 1);
-      p.happyAt = at;
       p.happyWindowAt = null;
       p.weight = Math.max(s.minWeight, p.weight - 1);
       const note =
@@ -707,11 +710,9 @@ export function syncPet(
   const formChanged = patch.form != null && patch.form !== pet.form;
   const p: Pet = { ...pet, ...patch, lastTickAt: at };
   if (patch.hunger != null && patch.hunger !== pet.hunger) {
-    p.hungerAt = at;
     p.hungerWindowAt = p.hunger === 0 ? at : null;
   }
   if (patch.happy != null && patch.happy !== pet.happy) {
-    p.happyAt = at;
     p.happyWindowAt = p.happy === 0 ? at : null;
   }
   if (patch.poop != null && patch.poop !== pet.poop) {

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { CHARACTERS, POOP_INTERVAL_MIN } from "./characters.ts";
+import { CHARACTERS, POOP_INTERVAL_MIN, hungerLossMin, happyLossMin } from "./characters.ts";
 import { discForEvo } from "./evolution.ts";
 import {
   applyAction,
@@ -11,6 +11,7 @@ import {
   derive,
   dismissOffShell,
   nextSicknessAt,
+  syncPet,
 } from "./simulate.ts";
 import type { Pet } from "./types.ts";
 
@@ -112,5 +113,78 @@ describe("P1 misbehave is a heart-drop countdown, not random", () => {
     const p = createDemoPet(t0);
     const d = derive({ ...p, heartDecrements: 2, hunger: 3, happy: 3 }, t0);
     assert.equal(d.remainingDiscDrops, 4);
+  });
+});
+
+describe("heart drop clock is free-running", () => {
+  it("meal does not reset the hunger countdown", () => {
+    const intervalMs = hungerLossMin("marutchi", 1) * 60 * 1000;
+    let p: Pet = {
+      ...createDemoPet(t0),
+      hunger: 3,
+      hungerAt: t0,
+      lastTickAt: t0,
+      sleeping: false,
+      hungerWindowAt: null,
+    };
+    const feedAt = t0 + 20 * 60 * 1000;
+    p = applyAction(p, "meal", feedAt);
+    assert.equal(p.hunger, 4);
+    assert.equal(p.hungerAt, t0);
+    const d = derive(p, feedAt);
+    assert.equal(d.nextHungerDrainAt, t0 + intervalMs);
+  });
+
+  it("game does not reset the happy countdown", () => {
+    const intervalMs = happyLossMin("marutchi", 1) * 60 * 1000;
+    let p: Pet = {
+      ...createDemoPet(t0),
+      happy: 2,
+      happyAt: t0,
+      lastTickAt: t0,
+      sleeping: false,
+      happyWindowAt: null,
+    };
+    const playAt = t0 + 20 * 60 * 1000;
+    p = applyAction(p, "game", playAt);
+    assert.equal(p.happy, 3);
+    assert.equal(p.happyAt, t0);
+    const d = derive(p, playAt);
+    assert.equal(d.nextHappyDrainAt, t0 + intervalMs);
+  });
+
+  it("matching heart counts does not restart the drop clock", () => {
+    let p: Pet = {
+      ...createDemoPet(t0),
+      hunger: 3,
+      hungerAt: t0,
+      lastTickAt: t0,
+      sleeping: false,
+    };
+    p = syncPet(p, { hunger: 2 }, t0 + 5 * 60 * 1000);
+    assert.equal(p.hunger, 2);
+    assert.equal(p.hungerAt, t0);
+  });
+
+  it("keeps the drop grid while the meter is empty", () => {
+    const intervalMs = hungerLossMin("marutchi", 1) * 60 * 1000;
+    let p: Pet = {
+      ...createDemoPet(t0),
+      hunger: 0,
+      hungerAt: t0,
+      lastTickAt: t0,
+      sleeping: false,
+      hungerWindowAt: t0,
+    };
+    const later = t0 + intervalMs + 60 * 1000;
+    p = catchUp(p, later);
+    assert.equal(p.hunger, 0);
+    assert.ok(p.hungerAt > t0, "empty ticks still advance the clock");
+    p = applyAction(p, "meal", later);
+    assert.equal(p.hunger, 1);
+    const d = derive(p, later);
+    assert.ok(d.nextHungerDrainAt != null);
+    const left = d.nextHungerDrainAt! - later;
+    assert.ok(left > 0 && left < intervalMs, `leftover should be under one interval, got ${left}`);
   });
 });
