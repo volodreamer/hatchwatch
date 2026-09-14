@@ -120,10 +120,16 @@ fun simSyncPet(pet: Pet, patch: SyncPatch, at: Long = System.currentTimeMillis()
         lastTickAt = at,
     )
     if (patch.hunger != null && patch.hunger != pet.hunger) {
-        p = p.copy(hungerWindowAt = if (p.hunger == 0) at else null)
+        p = p.copy(
+            hungerWindowAt = if (p.hunger == 0) at else null,
+            hungerAt = if (patch.hunger < pet.hunger) at else p.hungerAt,
+        )
     }
     if (patch.happy != null && patch.happy != pet.happy) {
-        p = p.copy(happyWindowAt = if (p.happy == 0) at else null)
+        p = p.copy(
+            happyWindowAt = if (p.happy == 0) at else null,
+            happyAt = if (patch.happy < pet.happy) at else p.happyAt,
+        )
     }
     if (patch.poop != null && patch.poop != pet.poop) p = p.copy(poopAt = at)
     if (patch.sick == false) p = p.copy(medicineGiven = 0)

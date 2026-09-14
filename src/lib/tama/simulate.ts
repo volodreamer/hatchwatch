@@ -711,9 +711,11 @@ export function syncPet(
   const p: Pet = { ...pet, ...patch, lastTickAt: at };
   if (patch.hunger != null && patch.hunger !== pet.hunger) {
     p.hungerWindowAt = p.hunger === 0 ? at : null;
+    if (patch.hunger < pet.hunger) p.hungerAt = at;
   }
   if (patch.happy != null && patch.happy !== pet.happy) {
     p.happyWindowAt = p.happy === 0 ? at : null;
+    if (patch.happy < pet.happy) p.happyAt = at;
   }
   if (patch.poop != null && patch.poop !== pet.poop) {
     p.poopAt = at;
