@@ -302,7 +302,7 @@ const en: Dict = {
   "set.privacy": "Privacy",
 
   "sync.title": "Match the device",
-  "sync.lead": "Copy the status screens from the shell. Changing heart counts does not restart the drop clock — meals and games never reset it either.",
+  "sync.lead": "Copy the status screens from the shell. Meals and games never reset the drop clock. Matching a lower heart count means you saw a drop — that restarts that meter from now. Matching a higher count (a feed) leaves the leftover running.",
   "sync.form": "Form",
   "sync.hunger": "Hunger hearts",
   "sync.happy": "Happy hearts",
@@ -778,7 +778,7 @@ const uk: Dict = {
   "set.privacy": "Приватність",
 
   "sync.title": "Підігнати корпус",
-  "sync.lead": "Скопіюй екрани статусу з корпуса. Зміна числа сердець не перезапускає відлік падіння — обід і гра його теж не скидають.",
+  "sync.lead": "Скопіюй екрани статусу з корпуса. Обід і гра не скидають відлік падіння. Нижче число сердець = ти бачив падіння, відлік від зараз. Вище число (годівля) лишає залишок часу.",
   "sync.form": "Форма",
   "sync.hunger": "Серця голоду",
   "sync.happy": "Серця щастя",
