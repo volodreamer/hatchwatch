@@ -153,7 +153,7 @@ describe("heart drop clock is free-running", () => {
     assert.equal(d.nextHappyDrainAt, t0 + intervalMs);
   });
 
-  it("matching a drop restarts the clock; matching a feed does not", () => {
+  it("matching heart counts never restarts the drop clock", () => {
     let p: Pet = {
       ...createDemoPet(t0),
       hunger: 3,
@@ -163,10 +163,10 @@ describe("heart drop clock is free-running", () => {
     };
     p = syncPet(p, { hunger: 2 }, t0 + 5 * 60 * 1000);
     assert.equal(p.hunger, 2);
-    assert.equal(p.hungerAt, t0 + 5 * 60 * 1000, "matching a drop sets the clock to that drop");
+    assert.equal(p.hungerAt, t0, "matching a lower count does not reset leftover");
     p = syncPet(p, { hunger: 4 }, t0 + 10 * 60 * 1000);
     assert.equal(p.hunger, 4);
-    assert.equal(p.hungerAt, t0 + 5 * 60 * 1000, "matching a feed does not reset the clock");
+    assert.equal(p.hungerAt, t0, "matching a feed does not reset leftover");
   });
 
   it("keeps the drop grid while the meter is empty", () => {

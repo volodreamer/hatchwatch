@@ -708,14 +708,12 @@ export function syncPet(
   opts?: { restartStage?: boolean; attention?: boolean },
 ): Pet {
   const formChanged = patch.form != null && patch.form !== pet.form;
-  const p: Pet = { ...pet, ...patch, lastTickAt: at };
+  const p: Pet = { ...catchUp(pet, at), ...patch, lastTickAt: at };
   if (patch.hunger != null && patch.hunger !== pet.hunger) {
-    p.hungerWindowAt = p.hunger === 0 ? at : null;
-    if (patch.hunger < pet.hunger) p.hungerAt = at;
+    p.hungerWindowAt = p.hunger === 0 ? p.hungerWindowAt ?? at : null;
   }
   if (patch.happy != null && patch.happy !== pet.happy) {
-    p.happyWindowAt = p.happy === 0 ? at : null;
-    if (patch.happy < pet.happy) p.happyAt = at;
+    p.happyWindowAt = p.happy === 0 ? p.happyWindowAt ?? at : null;
   }
   if (patch.poop != null && patch.poop !== pet.poop) {
     p.poopAt = at;
@@ -733,8 +731,6 @@ export function syncPet(
     p.stageStartedAt = at;
     p.heartDecrements = 0;
     p.misbehaveAt = null;
-    p.hungerAt = at;
-    p.happyAt = at;
     p.weight = Math.max(p.weight, statsFor(p.form).minWeight);
   }
   if (p.form === "tamatchi" || p.form === "kuchitamatchi") {
