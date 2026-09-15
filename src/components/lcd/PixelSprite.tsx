@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { POOP_FRAMES, SICK_FRAMES, SLEEP_FRAMES, SPRITE_FRAMES } from "@/lib/tama/sprites";
+import { DEAD_FRAMES, POOP_FRAMES, SICK_FRAMES, SLEEP_FRAMES, SPRITE_FRAMES } from "@/lib/tama/sprites";
 import type { CharacterId } from "@/lib/tama/types";
 import { cn } from "@/lib/utils";
 
@@ -58,12 +58,21 @@ export function PixelSprite({
   className,
   sleeping = false,
   sick = false,
+  dead = false,
 }: {
   id: CharacterId;
   className?: string;
   sleeping?: boolean;
   sick?: boolean;
+  dead?: boolean;
 }) {
+  if (dead) {
+    return (
+      <span className={cn("relative block h-full w-full", className)}>
+        <MaskSprite frames={DEAD_FRAMES} />
+      </span>
+    );
+  }
   return (
     <span className={cn("relative block h-full w-full", sleeping && "opacity-90", className)}>
       <MaskSprite frames={SPRITE_FRAMES[id] ?? SPRITE_FRAMES.babytchi} animate={!sleeping} />

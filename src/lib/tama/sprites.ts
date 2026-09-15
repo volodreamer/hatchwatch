@@ -21,3 +21,4 @@ export const SPRITE_FRAMES: Record<CharacterId, [string, string]> = {
 export const POOP_FRAMES = [asset("sprites/poop-icon-1.png"), asset("sprites/poop-icon-2.png")] as const;
 export const SICK_FRAMES = [asset("sprites/sick-icon.png")] as const;
 export const SLEEP_FRAMES = [asset("sprites/sleep-icon-1.png"), asset("sprites/sleep-icon-2.png")] as const;
+export const DEAD_FRAMES = [asset("sprites/dead-1.png"), asset("sprites/dead-2.png")] as const;

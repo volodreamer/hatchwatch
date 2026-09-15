@@ -33,6 +33,7 @@ export function CharacterGuide() {
           <li>{t("guide.r4")}</li>
           <li>{t("guide.r5")}</li>
           <li>{t("guide.r6")}</li>
+          <li>{t("guide.r7")}</li>
         </ul>
       </section>
 

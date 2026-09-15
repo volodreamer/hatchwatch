@@ -43,8 +43,8 @@ export function LcdScreen({ derived }: { derived: DerivedState }) {
       </div>
 
       <div className="relative mt-3 flex items-end justify-between gap-3">
-        <div className={cn("relative size-32 shrink-0 text-lcd-pixel", pet.sleeping && "translate-y-0.5")}>
-          <PixelSprite id={pet.form} sleeping={pet.sleeping} sick={pet.sick} />
+        <div className={cn("relative size-32 shrink-0 text-lcd-pixel", pet.sleeping && !pet.dead && "translate-y-0.5")}>
+          <PixelSprite id={pet.form} sleeping={pet.sleeping} sick={pet.sick} dead={Boolean(pet.dead)} />
         </div>
         <div className="flex min-w-0 flex-1 flex-col gap-2 pb-1">
           <HeartsRow label={t("lcd.hungry")} value={pet.hunger} />
@@ -52,7 +52,9 @@ export function LcdScreen({ derived }: { derived: DerivedState }) {
           <DisciplineBar value={pet.discipline} label={t("lcd.disc")} />
           <div className="flex items-center justify-between text-lcd-pixel/80">
             <span className="font-pixel text-sm tabular-nums">{pet.weight}g</span>
-            {pet.sleeping && pet.lightsOn ? (
+            {pet.dead ? (
+              <span className="font-pixel text-sm">{t("lcd.dead")}</span>
+            ) : pet.sleeping && pet.lightsOn ? (
               <span className="font-pixel text-sm text-danger">{t("lcd.lights")}</span>
             ) : pet.sleeping ? (
               <span className="font-pixel text-sm">{t("lcd.night")}</span>
@@ -68,7 +70,9 @@ export function LcdScreen({ derived }: { derived: DerivedState }) {
       <div className="relative mt-2 grid grid-cols-[8rem_1fr] items-center gap-3">
         <PoopPixels count={pet.poop} />
         <div className="justify-self-end text-right">
-          {pet.misbehaveAt || pet.checkDiscAt ? (
+          {pet.dead ? (
+            <span className="font-pixel text-sm uppercase">{t("lcd.dead")}</span>
+          ) : pet.misbehaveAt || pet.checkDiscAt ? (
             <span className="font-pixel text-sm uppercase">{t("lcd.attn")}</span>
           ) : pet.sleeping && pet.lightsOn ? (
             <span className="font-pixel text-sm uppercase text-danger">{t("lcd.on")}</span>
