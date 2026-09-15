@@ -857,8 +857,6 @@ const uk: Dict = {
   "log.confirm": "На корпусі",
   "log.undo-miss": "Скасувати",
   "log.die": "Померло",
-  "log.confirm": "Є на корпусі",
-  "log.undo-miss": "Скасувати",
 
   "plan.kicker": "Ціль",
   "plan.now": "Зараз",
