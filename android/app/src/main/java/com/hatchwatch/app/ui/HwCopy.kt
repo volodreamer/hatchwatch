@@ -169,6 +169,7 @@ object HwCopy {
         "guide.r4" to "Hearts only drain while awake.",
         "guide.r5" to "Pause the shell with A+C until SET if you cannot tend a window.",
         "guide.r6" to "Each form gets one scheduled skull (ROM timer, not dice), plus four poops, plus too many snacks on a replica.",
+        "guide.r7" to "The shell dies of old age after the adult's lifespan, or if a skull sits untreated. Hatchwatch does not kill the run — mark it dead when you see the ghost.",
     )
 
     private val uk = mapOf(
@@ -339,6 +340,7 @@ object HwCopy {
         "guide.r4" to "Серця падають лише не сплячи.",
         "guide.r5" to "Пауза корпуса A+C до SET, якщо не можеш встигнути.",
         "guide.r6" to "Кожна форма має один запланований череп, плюс чотири какашки, плюс забагато ласощів на репліці.",
+        "guide.r7" to "Корпус помирає від старості після життя дорослого, або якщо череп лишити без ліків. Hatchwatch сам не вбиває забіг — познач як померло, коли побачиш привида.",
     )
 
     fun t(locale: String, key: String, vars: Map<String, String> = emptyMap()): String {

@@ -150,7 +150,7 @@ fun GuideScreen(locale: String) {
         Text(HwCopy.t(locale, "guide.lead"), color = HwMuted)
         SectionCard {
             Text(HwCopy.t(locale, "guide.rule"), color = HwFg, fontFamily = HwPixel, fontSize = 18.sp)
-            listOf("guide.r1", "guide.r2", "guide.r3", "guide.r4", "guide.r5", "guide.r6").forEach {
+            listOf("guide.r1", "guide.r2", "guide.r3", "guide.r4", "guide.r5", "guide.r6", "guide.r7").forEach {
                 Text("• ${HwCopy.t(locale, it)}", color = HwMuted, fontSize = 14.sp)
             }
         }

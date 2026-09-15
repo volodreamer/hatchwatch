@@ -285,21 +285,23 @@ fun PixelSprite(
     sick: Boolean,
     modifier: Modifier = Modifier,
     tint: Color = HwLcdPixel,
+    dead: Boolean = false,
 ) {
     var frame by remember { mutableIntStateOf(0) }
-    LaunchedEffect(id, sleeping) {
+    LaunchedEffect(id, sleeping, dead) {
         while (true) {
             delay(500)
             frame = 1 - frame
         }
     }
-    val n = if (sleeping) 1 else frame + 1
+    val n = if (dead) frame + 1 else if (sleeping) 1 else frame + 1
+    val path = if (dead) "sprites/dead-$n.png" else "sprites/${id.id}-$n.png"
     Box(modifier) {
-        TintedAsset("sprites/${id.id}-$n.png", tint, Modifier.matchParentSize(), id.id)
-        if (sick) {
+        TintedAsset(path, tint, Modifier.matchParentSize(), if (dead) "dead" else id.id)
+        if (!dead && sick) {
             TintedAsset("sprites/sick-icon.png", tint, Modifier.align(Alignment.TopStart).size(18.dp))
         }
-        if (sleeping) {
+        if (!dead && sleeping) {
             TintedAsset("sprites/sleep-icon-${frame + 1}.png", tint, Modifier.align(Alignment.TopEnd).size(20.dp))
         }
     }

@@ -154,6 +154,7 @@ private fun LcdPanel(locale: String, derived: DerivedState, clock: String, date:
                 pet.sick || pet.checkSickAt != null,
                 Modifier.size(112.dp),
                 tint = ink,
+                dead = pet.dead,
             )
             Spacer(Modifier.size(12.dp))
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
