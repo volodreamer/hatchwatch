@@ -30,6 +30,7 @@ export function isNative(): boolean {
 export function upcomingAlarms(pet: Pet, now: number): NativeAlarm[] {
   const d = derive(pet, now);
   const p = d.pet;
+  if (p.dead) return [];
   const alarms: NativeAlarm[] = [];
 
   const add = (id: string, at: number | null, kind: string, title: string, body: string) => {

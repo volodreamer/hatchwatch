@@ -112,6 +112,11 @@ export function HomeDashboard() {
       ) : null}
 
       <LcdScreen derived={derived} />
+      {pet.dead ? (
+        <p className="rounded-lg border border-border bg-card px-3 py-2 text-sm text-muted">
+          {t("dead.banner", { age: pet.age, care: pet.careMistakes })}
+        </p>
+      ) : null}
       <NextCareCard
         derived={derived}
         onOnShell={(kind) => {
@@ -131,6 +136,7 @@ export function HomeDashboard() {
       />
       <ActionPad
         onLog={onLog}
+        disabled={Boolean(pet.dead)}
         attention={Boolean(derived.pet.misbehaveAt || derived.pet.checkDiscAt)}
         lightsHot={derived.pet.sleeping && derived.pet.lightsOn}
       />

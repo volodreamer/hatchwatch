@@ -168,6 +168,23 @@ export function SettingsSheet({ pet, onClose }: { pet: Pet; onClose: () => void 
       </section>
 
       <section className="flex flex-col gap-2 border-t border-border pt-4">
+        {!pet.dead ? (
+          <button
+            type="button"
+            onClick={() => {
+              if (window.confirm(t("set.dead.q"))) {
+                usePetStore.getState().log("die");
+                toast(t("set.dead.done"));
+                onClose();
+              }
+            }}
+            className="py-2 text-left text-sm text-muted underline-offset-4 hover:text-fg hover:underline"
+          >
+            {t("set.dead")}
+          </button>
+        ) : (
+          <p className="text-sm text-muted">{t("dead.banner", { age: pet.age, care: pet.careMistakes })}</p>
+        )}
         <button
           type="button"
           onClick={() => {

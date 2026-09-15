@@ -10,6 +10,12 @@ export function translateAlert(locale: Locale, alert: CareAlert, derived: Derive
   switch (alert.id) {
     case "hatch":
       return { title: tr("care.hatch.t"), detail: tr("care.hatch.d"), hint: tr("care.hatch.h") };
+    case "dead":
+      return {
+        title: tr("care.dead.t"),
+        detail: tr("care.dead.d", { age: p.age, care: p.careMistakes }),
+        hint: tr("care.dead.h"),
+      };
     case "hunger-call":
       return { title: tr("care.hungerCall.t"), detail: tr("care.hungerCall.d"), hint: tr("hint.food") };
     case "hunger-soon":

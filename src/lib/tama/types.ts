@@ -49,7 +49,8 @@ export type ActionType =
   | "hatch"
   | "sync"
   | "nap"
-  | "confirm";
+  | "confirm"
+  | "die";
 
 export interface CareEvent {
   id: string;
@@ -131,6 +132,9 @@ export interface Pet {
   events: CareEvent[];
   notifOn: boolean;
   soundOn: boolean;
+  /** Set when the shell died (or you mark it). Catch-up freezes. */
+  dead?: boolean;
+  deadAt?: number | null;
 }
 
 export type PathStatus = "hit" | "path" | "off";

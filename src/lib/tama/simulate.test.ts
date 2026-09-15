@@ -191,3 +191,61 @@ describe("heart drop clock is free-running", () => {
     assert.ok(left > 0 && left < intervalMs, `leftover should be under one interval, got ${left}`);
   });
 });
+
+describe("sleep lights miss is once per night", () => {
+  it("does not stack a care mistake every 15 minutes overnight", () => {
+    const evening = Date.parse("2026-09-01T19:00:00");
+    const morning = Date.parse("2026-09-02T10:00:00");
+    let p: Pet = {
+      ...createDemoPet(evening),
+      hunger: 4,
+      happy: 4,
+      hungerAt: evening,
+      happyAt: evening,
+      lastTickAt: evening,
+      sleeping: false,
+      lightsOn: true,
+      careMistakes: 0,
+      hungerWindowAt: null,
+      happyWindowAt: null,
+      sleepWindowAt: null,
+    };
+    p = catchUp(p, morning);
+    const lightMisses = p.events.filter((e) => e.type === "miss-care" && e.note?.includes("lights")).length;
+    assert.equal(lightMisses, 1);
+    assert.equal(p.careMistakes, 1);
+  });
+
+  it("does not reopen a closed lights window overnight", () => {
+    const night = Date.parse("2026-09-01T22:00:00");
+    const morning = Date.parse("2026-09-02T10:00:00");
+    let p: Pet = {
+      ...createDemoPet(night),
+      hunger: 4,
+      happy: 4,
+      hungerAt: night,
+      happyAt: night,
+      lastTickAt: night,
+      sleeping: true,
+      lightsOn: true,
+      careMistakes: 1,
+      hungerWindowAt: null,
+      happyWindowAt: null,
+      sleepWindowAt: null,
+    };
+    p = catchUp(p, morning);
+    const lightMisses = p.events.filter((e) => e.type === "miss-care" && e.note?.includes("lights")).length;
+    assert.equal(lightMisses, 0);
+    assert.equal(p.careMistakes, 1);
+  });
+
+  it("mark as dead freezes catch-up", () => {
+    const t1 = t0 + 60 * 60 * 1000;
+    let p = applyAction(createDemoPet(t0), "die", t0);
+    assert.equal(p.dead, true);
+    const before = p.careMistakes;
+    p = catchUp(p, t1);
+    assert.equal(p.careMistakes, before);
+    assert.equal(p.dead, true);
+  });
+});
