@@ -70,6 +70,7 @@ object PetStore {
     }
 
     private fun maybeAlert(prev: Pet, next: Pet) {
+        if (next.dead) return
         val ctx = app ?: return
         val sleepOpen = (!prev.sleeping && next.sleeping && next.lightsOn) ||
             (prev.sleepWindowAt == null && next.sleepWindowAt != null && next.lightsOn)

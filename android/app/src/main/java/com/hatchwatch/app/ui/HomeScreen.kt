@@ -91,9 +91,22 @@ fun HomeScreen(locale: String, derived: DerivedState) {
         }
 
         LcdPanel(locale, derived, clock, date)
+        if (pet.dead) {
+            Text(
+                HwCopy.t(locale, "dead.banner", mapOf("age" to pet.age.toString(), "care" to pet.careMistakes.toString())),
+                color = HwMuted,
+                fontSize = 14.sp,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(HwSurface)
+                    .border(1.dp, HwBorder, RoundedCornerShape(12.dp))
+                    .padding(12.dp),
+            )
+        }
         NextCare(locale, derived)
         ActionGrid(locale, derived, onMiss = { missOpen = true })
-        if (missOpen) {
+        if (missOpen && !pet.dead) {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
                 HwButton(HwCopy.t(locale, "home.missCare"), onClick = { PetStore.log(ActionType.miss_care); missOpen = false }, modifier = Modifier.weight(1f), danger = true)
                 HwButton(HwCopy.t(locale, "home.missDisc"), onClick = { PetStore.log(ActionType.miss_disc); missOpen = false }, modifier = Modifier.weight(1f), danger = true)
@@ -157,6 +170,7 @@ private fun LcdPanel(locale: String, derived: DerivedState, clock: String, date:
         ) {
             PoopPixels(pet.poop, ink)
             val status = when {
+                pet.dead -> HwCopy.t(locale, "lcd.dead")
                 pet.misbehaveAt != null || pet.checkDiscAt != null -> HwCopy.t(locale, "lcd.attn")
                 pet.sleeping && pet.lightsOn -> HwCopy.t(locale, "lcd.on")
                 pet.sleeping -> HwCopy.t(locale, "lcd.off")
@@ -238,11 +252,12 @@ private fun ActionGrid(locale: String, derived: DerivedState, onMiss: () -> Unit
     )
     val attention = derived.pet.misbehaveAt != null || derived.pet.checkDiscAt != null
     val lightsHot = derived.pet.sleeping && derived.pet.lightsOn
+    val live = !derived.pet.dead
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         actions.chunked(4).forEach { row ->
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 row.forEach { (type, key, icon) ->
-                    val hot = (type == ActionType.scold && attention) || (type == ActionType.lights_off && lightsHot)
+                    val hot = live && ((type == ActionType.scold && attention) || (type == ActionType.lights_off && lightsHot))
                     Box(Modifier.weight(1f)) {
                         HwButton(
                             HwCopy.t(locale, key),
@@ -257,6 +272,7 @@ private fun ActionGrid(locale: String, derived: DerivedState, onMiss: () -> Unit
                             danger = type == ActionType.miss_care,
                             accent = type != ActionType.miss_care,
                             icon = icon,
+                            enabled = live,
                             modifier = Modifier.fillMaxWidth(),
                         )
                     }

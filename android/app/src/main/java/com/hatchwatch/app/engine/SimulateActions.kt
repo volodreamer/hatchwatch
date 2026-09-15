@@ -3,7 +3,8 @@ package com.hatchwatch.app.engine
 import kotlin.math.min
 
 fun simApplyAction(pet: Pet, type: ActionType, at: Long): Pet {
-    var p = Simulate.catchUp(pet, at)
+    if (pet.dead && type != ActionType.die) return pet
+    var p = if (type == ActionType.die) Simulate.normalize(pet) else Simulate.catchUp(pet, at)
     val s = Characters.stats(p.form)
     return when (type) {
         ActionType.meal -> {
@@ -47,6 +48,17 @@ fun simApplyAction(pet: Pet, type: ActionType, at: Long): Pet {
             } else Simulate.push(p, type, at, "Medicine ${p.medicineGiven}/${s.shots}")
         }
         ActionType.lights_off -> Simulate.push(p.copy(lightsOn = false, sleepWindowAt = null), type, at, "Lights off")
+        ActionType.die -> {
+            if (p.dead) p
+            else Simulate.push(
+                p.copy(
+                    dead = true, deadAt = at, sleeping = false, lightsOn = false,
+                    hungerWindowAt = null, happyWindowAt = null, sleepWindowAt = null,
+                    misbehaveAt = null, checkPoopAt = null, checkSickAt = null, checkDiscAt = null,
+                ),
+                type, at, "Died · age ${p.age} · ${p.careMistakes} care mistakes",
+            )
+        }
         ActionType.miss_care -> Simulate.countCareMiss(p, at, "Logged a care mistake")
             .copy(hungerWindowAt = null, happyWindowAt = null, sleepWindowAt = null)
         ActionType.miss_disc -> Simulate.countDiscMiss(p, at)
@@ -60,7 +72,7 @@ fun simUndoLastCare(pet: Pet): Pet {
         it.type in setOf(
             ActionType.meal, ActionType.snack, ActionType.game, ActionType.clean,
             ActionType.scold, ActionType.medicine, ActionType.lights_off,
-            ActionType.miss_care, ActionType.miss_disc, ActionType.sick,
+            ActionType.miss_care, ActionType.miss_disc, ActionType.sick, ActionType.die,
         )
     } ?: return pet
     var p = pet.copy(events = pet.events.filter { it.id != last.id })
@@ -73,12 +85,14 @@ fun simUndoLastCare(pet: Pet): Pet {
         ActionType.scold -> p = p.copy(discipline = maxOf(0, p.discipline - 25))
         ActionType.lights_off -> p = p.copy(lightsOn = true)
         ActionType.sick -> p = p.copy(sick = false)
+        ActionType.die -> p = p.copy(dead = false, deadAt = null)
         else -> {}
     }
     return Simulate.push(p, ActionType.undo_miss, System.currentTimeMillis(), "Undid ${last.type}")
 }
 
 fun simDismissOffShell(pet: Pet, kind: String, at: Long = System.currentTimeMillis()): Pet {
+    if (pet.dead) return pet
     val p = Simulate.normalize(pet).copy(lastTickAt = at)
     return when (kind) {
         "poop" -> Simulate.push(p.copy(poop = 0, poopAt = at, checkPoopAt = null), ActionType.sync, at, "No poop on the shell — next check from now")
@@ -88,6 +102,7 @@ fun simDismissOffShell(pet: Pet, kind: String, at: Long = System.currentTimeMill
 }
 
 fun simConfirmOnShell(pet: Pet, kind: String, at: Long = System.currentTimeMillis()): Pet {
+    if (pet.dead) return pet
     var p = Simulate.normalize(pet).copy(lastTickAt = at)
     return when (kind) {
         "poop" -> {

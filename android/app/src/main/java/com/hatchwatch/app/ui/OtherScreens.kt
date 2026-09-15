@@ -37,6 +37,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.hatchwatch.app.ChirpPlayer
+import com.hatchwatch.app.engine.ActionType
 import com.hatchwatch.app.engine.CharacterId
 import com.hatchwatch.app.engine.Characters
 import com.hatchwatch.app.engine.DerivedState
@@ -237,6 +238,7 @@ private fun applyBackup(ctx: android.content.Context, locale: String, text: Stri
 fun SettingsSheet(locale: String, pet: Pet, onClose: () -> Unit) {
     val ctx = LocalContext.current
     var confirmEnd by remember { mutableStateOf(false) }
+    var confirmDead by remember { mutableStateOf(false) }
     val notifPerm = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
     val shellId = hwNormalizeShell(PetStore.shell.collectAsState().value)
     ModalBottomSheet(onDismissRequest = onClose, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true), containerColor = HwSurface) {
@@ -285,10 +287,36 @@ fun SettingsSheet(locale: String, pet: Pet, onClose: () -> Unit) {
             Text(HwCopy.t(locale, "set.backup"), color = HwFg, fontFamily = HwPixel)
             Text(HwCopy.t(locale, "set.backup.d"), color = HwMuted, fontSize = 13.sp)
             BackupRestoreSection(locale, showSave = true, onRestored = onClose)
+            if (!pet.dead) {
+                HwButton(HwCopy.t(locale, "set.dead"), onClick = { confirmDead = true }, modifier = Modifier.fillMaxWidth())
+            } else {
+                Text(
+                    HwCopy.t(locale, "dead.banner", mapOf("age" to pet.age.toString(), "care" to pet.careMistakes.toString())),
+                    color = HwMuted,
+                    fontSize = 14.sp,
+                )
+            }
             HwButton(HwCopy.t(locale, "set.end"), onClick = { confirmEnd = true }, danger = true, modifier = Modifier.fillMaxWidth())
             HwButton(HwCopy.t(locale, "set.close"), onClick = onClose, modifier = Modifier.fillMaxWidth())
             Spacer(Modifier.height(24.dp))
         }
+    }
+    if (confirmDead) {
+        AlertDialog(
+            onDismissRequest = { confirmDead = false },
+            title = { Text(HwCopy.t(locale, "set.dead")) },
+            text = { Text(HwCopy.t(locale, "set.dead.q")) },
+            confirmButton = {
+                HwButton(HwCopy.t(locale, "set.dead"), onClick = {
+                    PetStore.log(ActionType.die)
+                    Toast.makeText(ctx, HwCopy.t(locale, "set.dead.done"), Toast.LENGTH_SHORT).show()
+                    confirmDead = false
+                    onClose()
+                }, danger = true)
+            },
+            dismissButton = { HwButton(HwCopy.t(locale, "sync.cancel"), onClick = { confirmDead = false }) },
+            containerColor = HwSurface,
+        )
     }
     if (confirmEnd) {
         AlertDialog(

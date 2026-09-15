@@ -36,6 +36,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -68,6 +69,7 @@ fun HwButton(
     danger: Boolean = false,
     accent: Boolean = false,
     icon: ImageVector? = null,
+    enabled: Boolean = true,
 ) {
     val palette = LocalHwColors.current
     val bg = when {
@@ -85,10 +87,11 @@ fun HwButton(
     val shape = RoundedCornerShape(12.dp)
     Box(
         modifier
+            .alpha(if (enabled) 1f else 0.45f)
             .border(1.dp, outline, shape)
             .clip(shape)
             .background(bg)
-            .clickable(onClick = onClick)
+            .clickable(enabled = enabled, onClick = onClick)
             .padding(horizontal = 10.dp, vertical = 10.dp),
         contentAlignment = Alignment.Center,
     ) {

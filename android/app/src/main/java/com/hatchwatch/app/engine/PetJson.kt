@@ -85,6 +85,8 @@ object PetJson {
         o.put("snackCount", pet.snackCount)
         o.put("notifOn", pet.notifOn)
         o.put("soundOn", pet.soundOn)
+        o.put("dead", pet.dead)
+        putLongOrNull(o, "deadAt", pet.deadAt)
         val events = JSONArray()
         for (e in pet.events) {
             val ev = JSONObject()
@@ -165,6 +167,8 @@ object PetJson {
                 events = events,
                 notifOn = o.optBoolean("notifOn", false),
                 soundOn = o.optBoolean("soundOn", true),
+                dead = o.optBoolean("dead", false),
+                deadAt = longOrNull(o, "deadAt"),
             ),
         )
     }

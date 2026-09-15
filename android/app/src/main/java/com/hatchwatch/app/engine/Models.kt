@@ -29,7 +29,7 @@ enum class TeenKind { tamatchi_t1, tamatchi_t2, kuchitamatchi_t1, kuchitamatchi_
 enum class ActionType {
     meal, snack, game, clean, scold, medicine, lights_off,
     miss_care, miss_disc, undo_miss, sick, heal, evolve, poop,
-    sleep, wake, hatch, sync, nap, confirm
+    sleep, wake, hatch, sync, nap, confirm, die
 }
 
 enum class Urgency { idle, soon, now, late }
@@ -109,6 +109,8 @@ data class Pet(
     val events: List<CareEvent>,
     val notifOn: Boolean,
     val soundOn: Boolean,
+    val dead: Boolean = false,
+    val deadAt: Long? = null,
 )
 
 data class CareAlert(

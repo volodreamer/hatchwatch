@@ -49,6 +49,7 @@ object AlarmScheduler {
     fun sync(context: Context, pet: Pet) {
         ensureChannel(context)
         cancelAll(context)
+        if (pet.dead) return
         if (!pet.notifOn && !pet.soundOn) return
         val now = System.currentTimeMillis()
         val alarms = Simulate.upcomingAlarms(pet, now)

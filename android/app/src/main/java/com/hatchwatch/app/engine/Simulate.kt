@@ -229,6 +229,7 @@ object Simulate {
     }
 
     internal fun applyTimePoint(pet: Pet, at: Long): Pet {
+        if (pet.dead) return pet.copy(lastTickAt = at)
         var p = pet
         val s = Characters.stats(p.form)
         val due = evolutionDueAt(p)
@@ -250,7 +251,7 @@ object Simulate {
         if (sleepingNow && !p.sleeping) return fallAsleep(p, at)
         if (!sleepingNow && p.sleeping) return wakeUp(p, at)
         if (p.sleepWindowAt != null && p.lightsOn && at - p.sleepWindowAt >= Characters.CARE_WINDOW_MS) {
-            p = countCareMiss(p, at, "Did not turn the lights off").copy(sleepWindowAt = null)
+            p = countCareMiss(p, at, "Did not turn the lights off").copy(sleepWindowAt = null, lightsOn = false)
         }
         if (p.hungerWindowAt != null && at - p.hungerWindowAt >= Characters.CARE_WINDOW_MS) {
             p = countCareMiss(p, at, "Missed a hunger call").copy(hungerWindowAt = null)
@@ -307,6 +308,7 @@ object Simulate {
 
     fun catchUp(pet: Pet, now: Long): Pet {
         var p = normalize(pet)
+        if (p.dead) return p.copy(lastTickAt = now)
         if (now <= p.lastTickAt) return p.copy(lastTickAt = now)
         var guard = 0
         while (guard++ < 2500) {
@@ -316,9 +318,6 @@ object Simulate {
                 val shouldSleep = Clock.isSleepingAt(now, s.wakeHour, s.sleepHour)
                 if (shouldSleep && !p.sleeping) return fallAsleep(p, now)
                 if (!shouldSleep && p.sleeping) return wakeUp(p, now)
-                if (shouldSleep && p.sleeping && p.lightsOn && p.sleepWindowAt == null) {
-                    return p.copy(sleepWindowAt = now, lastTickAt = now)
-                }
                 return p.copy(lastTickAt = now)
             }
             p = applyTimePoint(p, n)

@@ -68,6 +68,14 @@ fun simDerive(pet: Pet, now: Long): DerivedState {
         alerts += CareAlert("evo", AlertKind.evolve, if (nxt != null) "Evolving into ${Characters.name(nxt)}" else "Evolution soon", "Mistake counts at this moment lock the next form.", evoAt, urgencyFor(evoAt, now), "Just watch")
     }
     val rank = mapOf(Urgency.late to 0, Urgency.now to 1, Urgency.soon to 2, Urgency.idle to 3)
+    if (p.dead) {
+        alerts.clear()
+        alerts += CareAlert(
+            "dead", AlertKind.hatch, "Died",
+            "Age ${p.age} · ${p.careMistakes} care mistakes. This run is frozen.",
+            p.deadAt ?: now, Urgency.idle, "Reset in Settings for a new egg",
+        )
+    }
     alerts.sortWith(compareBy({ rank[it.urgency] ?: 9 }, { it.dueAt }))
     val primary = alerts.find { it.urgency == Urgency.late || it.urgency == Urgency.now } ?: alerts.firstOrNull()
     val predictedTeen = if (p.form in setOf(CharacterId.marutchi, CharacterId.babytchi, CharacterId.egg)) Evolution.teenKindNow(p) else p.teenKind
@@ -83,6 +91,7 @@ fun simDerive(pet: Pet, now: Long): DerivedState {
 }
 
 fun simUpcomingAlarms(pet: Pet, now: Long): List<NativeAlarm> {
+    if (pet.dead) return emptyList()
     val d = simDerive(pet, now)
     val p = d.pet
     val out = mutableListOf<NativeAlarm>()
