@@ -309,7 +309,7 @@ const en: Dict = {
   "set.privacy": "Privacy",
 
   "sync.title": "Match the device",
-  "sync.lead": "Copy status from the shell. Meal, game, snack, and Match never restart the hunger or happy drop clocks. Those only tick on their own interval.",
+  "sync.lead": "Copy status from the shell. Meal, game, and snack do not restart a clock that is already running. Empty meters start their clock on the first fill — the shell does not count leftover from hatch.",
   "sync.form": "Form",
   "sync.hunger": "Hunger hearts",
   "sync.happy": "Happy hearts",
@@ -795,7 +795,7 @@ const uk: Dict = {
   "set.privacy": "Приватність",
 
   "sync.title": "Підігнати корпус",
-  "sync.lead": "Скопіюй статус з корпуса. Обід, гра, ласощі і Зіставлення ніколи не скидають відлік падіння сердець. Він іде своїм інтервалом.",
+  "sync.lead": "Скопіюй статус з корпуса. Обід, гра і ласощі не скидають відлік, який уже йде. Порожні серця запускають годинник з першого заповнення — корпус не рахує залишок від вилуплення.",
   "sync.form": "Форма",
   "sync.hunger": "Серця голоду",
   "sync.happy": "Серця щастя",

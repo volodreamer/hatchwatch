@@ -169,7 +169,26 @@ describe("heart drop clock is free-running", () => {
     assert.equal(p.hungerAt, t0, "matching a feed does not reset leftover");
   });
 
-  it("keeps the drop grid while the meter is empty", () => {
+  it("filling from empty starts a full interval", () => {
+    const intervalMs = hungerLossMin("marutchi", 1) * 60 * 1000;
+    let p: Pet = {
+      ...createDemoPet(t0),
+      hunger: 0,
+      hungerAt: t0,
+      lastTickAt: t0,
+      sleeping: false,
+      hungerWindowAt: t0,
+    };
+    const later = t0 + intervalMs + 60 * 1000;
+    p = applyAction(p, "meal", later);
+    assert.equal(p.hunger, 1);
+    assert.equal(p.hungerAt, later, "filling from empty starts a full interval");
+    const d = derive(p, later);
+    assert.ok(d.nextHungerDrainAt != null);
+    assert.equal(d.nextHungerDrainAt, later + intervalMs);
+  });
+
+  it("empty meters do not keep ticking the drop grid", () => {
     const intervalMs = hungerLossMin("marutchi", 1) * 60 * 1000;
     let p: Pet = {
       ...createDemoPet(t0),
@@ -182,13 +201,48 @@ describe("heart drop clock is free-running", () => {
     const later = t0 + intervalMs + 60 * 1000;
     p = catchUp(p, later);
     assert.equal(p.hunger, 0);
-    assert.ok(p.hungerAt > t0, "empty ticks still advance the clock");
-    p = applyAction(p, "meal", later);
-    assert.equal(p.hunger, 1);
+    assert.equal(p.hungerAt, t0, "empty meters do not advance the clock");
     const d = derive(p, later);
-    assert.ok(d.nextHungerDrainAt != null);
-    const left = d.nextHungerDrainAt! - later;
-    assert.ok(left > 0 && left < intervalMs, `leftover should be under one interval, got ${left}`);
+    assert.equal(d.nextHungerDrainAt, null);
+  });
+
+  it("first game after hatch starts a full baby happy interval", () => {
+    let p = baby();
+    const playAt = t0 + 2 * 60 * 1000;
+    p = applyAction(p, "game", playAt);
+    assert.equal(p.happy, 1);
+    assert.equal(p.happyAt, playAt);
+    const d = derive(p, playAt);
+    assert.equal(d.nextHappyDrainAt, playAt + happyLossMin("babytchi", 0) * 60 * 1000);
+    p = applyAction(p, "game", playAt + 60 * 1000);
+    assert.equal(p.happy, 2);
+    assert.equal(p.happyAt, playAt, "later games keep leftover");
+  });
+
+  it("realigns a baby whose happy clock still starts at hatch", () => {
+    let p = baby();
+    const playAt = t0 + 2 * 60 * 1000;
+    p = applyAction(p, "game", playAt);
+    p = applyAction(p, "game", playAt + 30 * 1000);
+    p = applyAction(p, "game", playAt + 60 * 1000);
+    p = applyAction(p, "game", playAt + 90 * 1000);
+    p = { ...p, happy: 4, happyAt: t0 };
+    const now = t0 + 3 * 60 * 1000;
+    const d = derive(p, now);
+    const intervalMs = happyLossMin("babytchi", 0) * 60 * 1000;
+    assert.equal(d.pet.happyAt, playAt);
+    assert.equal(d.nextHappyDrainAt, playAt + intervalMs);
+    assert.equal(d.pet.happy, 4);
+  });
+
+  it("matching an empty meter onto hearts starts the clock", () => {
+    let p = baby();
+    assert.equal(p.happy, 0);
+    p = syncPet(p, { happy: 4 }, t0 + 3 * 60 * 1000);
+    assert.equal(p.happy, 4);
+    assert.equal(p.happyAt, t0 + 3 * 60 * 1000);
+    const d = derive(p, t0 + 3 * 60 * 1000);
+    assert.equal(d.nextHappyDrainAt, t0 + 3 * 60 * 1000 + happyLossMin("babytchi", 0) * 60 * 1000);
   });
 });
 
