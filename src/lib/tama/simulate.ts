@@ -68,6 +68,8 @@ export function normalizePet(raw: Pet): Pet {
     checkSickAt: raw.checkSickAt ?? null,
     checkDiscAt: raw.checkDiscAt ?? null,
     stageSickDone: Boolean(raw.stageSickDone),
+    dead: Boolean(raw.dead),
+    deadAt: raw.deadAt ?? null,
   };
 }
 
@@ -127,6 +129,8 @@ export function createPet(opts: {
     events: [],
     notifOn: false,
     soundOn: true,
+    dead: false,
+    deadAt: null,
   };
   let seeded = pet;
   if (!hatched) {
@@ -188,20 +192,63 @@ export function createDemoPet(now = Date.now()): Pet {
     ],
     notifOn: false,
     soundOn: true,
+    dead: false,
+    deadAt: null,
   };
   return pet;
 }
 
 function nextDrainAt(
   lastAt: number,
-  _hearts: number,
+  hearts: number,
   lossMin: number,
   wake: number | null,
   sleep: number | null,
 ): number | null {
-  if (lossMin >= 900) return null;
+  if (lossMin >= 900 || hearts <= 0) return null;
   return addAwakeMs(lastAt, lossMin * 60 * 1000, wake, sleep);
 }
+
+/** Oldest logged fill in this stage. Used to realign a baby whose clock started at hatch. */
+function oldestFillAt(pet: Pet, types: ActionType[]): number | null {
+  let oldest: number | null = null;
+  for (const e of pet.events) {
+    if (!types.includes(e.type)) continue;
+    if (e.at < pet.stageStartedAt - 1000) continue;
+    if (oldest == null || e.at < oldest) oldest = e.at;
+  }
+  return oldest;
+}
+
+function alignDrainFromFill(fillAt: number, now: number, intervalMs: number): number {
+  if (now <= fillAt || intervalMs <= 0) return fillAt;
+  const completed = Math.floor((now - fillAt) / intervalMs);
+  return fillAt + completed * intervalMs;
+}
+
+/**
+ * P1 does not tick hunger/happy while the meter is empty. Clocks start on the first fill.
+ * 2.1.11 started both clocks at hatch, so the first games (which take minutes) ate the
+ * leftover and happy dropped faster than the shell. Realign babies still on the hatch stamp.
+ */
+function repairEmptyStartClocks(p: Pet, now: number): Pet {
+  if (p.form !== "babytchi") return p;
+  let n: Pet = p;
+  if (n.hunger > 0 && n.hungerAt <= n.hatchAt) {
+    const first = oldestFillAt(n, ["meal", "sync"]);
+    if (first != null) {
+      n = { ...n, hungerAt: alignDrainFromFill(first, now, hungerLossMin(n.form, n.age) * 60 * 1000) };
+    }
+  }
+  if (n.happy > 0 && n.happyAt <= n.hatchAt) {
+    const first = oldestFillAt(n, ["game", "snack", "sync"]);
+    if (first != null) {
+      n = { ...n, happyAt: alignDrainFromFill(first, now, happyLossMin(n.form, n.age) * 60 * 1000) };
+    }
+  }
+  return n;
+}
+
 
 function nextPoopAt(pet: Pet): number | null {
   if (pet.form === "egg") return null;
@@ -311,11 +358,8 @@ function countDiscMiss(pet: Pet, at: number): Pet {
 function dropHeart(pet: Pet, meter: "hunger" | "happy", at: number): Pet {
   let p: Pet = { ...pet };
   const before = meter === "hunger" ? p.hunger : p.happy;
-  if (before <= 0) {
-    if (meter === "hunger") p.hungerAt = at;
-    else p.happyAt = at;
-    return p;
-  }
+  if (before <= 0) return p;
+
   if (meter === "hunger") {
     p.hunger = Math.max(0, p.hunger - 1);
     p.hungerAt = at;
@@ -345,6 +389,7 @@ function dropHeart(pet: Pet, meter: "hunger" | "happy", at: number): Pet {
 }
 
 function applyTimePoint(pet: Pet, at: number): Pet {
+  if (pet.dead) return { ...pet, lastTickAt: at };
   let p: Pet = { ...pet };
   const s = stats(p);
   const due = evolutionDueAt(p);
@@ -391,6 +436,7 @@ function applyTimePoint(pet: Pet, at: number): Pet {
   ) {
     p = countCareMiss(p, at, "Did not turn the lights off");
     p.sleepWindowAt = null;
+    p.lightsOn = false;
   }
 
   if (p.hungerWindowAt != null && at - p.hungerWindowAt >= CARE_WINDOW_MS) {
@@ -473,6 +519,11 @@ function nextEventAt(pet: Pet, from: number): number | null {
 
 export function catchUp(pet: Pet, now: number): Pet {
   let p: Pet = { ...normalizePet(pet), events: [...pet.events] };
+  if (p.dead) {
+    p.lastTickAt = now;
+    return p;
+  }
+  p = repairEmptyStartClocks(p, now);
   if (now <= p.lastTickAt) {
     p.lastTickAt = now;
     return p;
@@ -493,15 +544,22 @@ export function catchUp(pet: Pet, now: number): Pet {
 }
 
 export function applyAction(pet: Pet, type: ActionType, at: number): Pet {
-  let p = catchUp({ ...pet, events: [...pet.events] }, at);
+  if (pet.dead && type !== "die") return pet;
+  // Freeze first so marking dead cannot add leftover overnight ticks.
+  let p =
+    type === "die"
+      ? { ...normalizePet(pet), events: [...pet.events] }
+      : catchUp({ ...pet, events: [...pet.events] }, at);
   const s = stats(p);
 
   switch (type) {
     case "meal": {
       if (p.sleeping) return pushEvent(p, "meal", at, "Sleeping — meal ignored on the device");
       if (p.hunger >= 4) return pushEvent(p, "meal", at, "Full — it may refuse the meal");
+      const fromEmpty = p.hunger === 0;
       p.hunger = Math.min(4, p.hunger + 1);
       p.hungerWindowAt = null;
+      if (fromEmpty) p.hungerAt = at;
       p.weight = Math.min(s.maxWeight, p.weight + 1);
       const note =
         p.misbehaveAt != null
@@ -512,8 +570,10 @@ export function applyAction(pet: Pet, type: ActionType, at: number): Pet {
     }
     case "snack": {
       if (p.sleeping) return pushEvent(p, "snack", at, "Sleeping — snack ignored on the device");
+      const fromEmpty = p.happy === 0;
       p.happy = Math.min(4, p.happy + 1);
       p.happyWindowAt = null;
+      if (fromEmpty) p.happyAt = at;
       p.weight = Math.min(s.maxWeight, p.weight + 2);
       p.snackCount += 1;
       const warn =
@@ -536,8 +596,10 @@ export function applyAction(pet: Pet, type: ActionType, at: number): Pet {
     }
     case "game": {
       if (p.sleeping) return pushEvent(p, "game", at, "Sleeping — game ignored");
+      const fromEmpty = p.happy === 0;
       p.happy = Math.min(4, p.happy + 1);
       p.happyWindowAt = null;
+      if (fromEmpty) p.happyAt = at;
       p.weight = Math.max(s.minWeight, p.weight - 1);
       const note =
         p.misbehaveAt != null
@@ -583,6 +645,22 @@ export function applyAction(pet: Pet, type: ActionType, at: number): Pet {
       p = pushEvent(p, "lights-off", at, "Lights off");
       return p;
     }
+    case "die": {
+      if (p.dead) return p;
+      p.dead = true;
+      p.deadAt = at;
+      p.sleeping = false;
+      p.lightsOn = false;
+      p.hungerWindowAt = null;
+      p.happyWindowAt = null;
+      p.sleepWindowAt = null;
+      p.misbehaveAt = null;
+      p.checkPoopAt = null;
+      p.checkSickAt = null;
+      p.checkDiscAt = null;
+      p = pushEvent(p, "die", at, `Died · age ${p.age} · ${p.careMistakes} care mistakes`);
+      return p;
+    }
     case "miss-care": {
       p = countCareMiss(p, at, "Logged a care mistake");
       p.hungerWindowAt = null;
@@ -605,7 +683,7 @@ export function applyAction(pet: Pet, type: ActionType, at: number): Pet {
 
 export function undoLastCare(pet: Pet): Pet {
   const last = pet.events.find((e) =>
-    ["meal", "snack", "game", "clean", "scold", "medicine", "lights-off", "miss-care", "miss-disc", "sick"].includes(
+    ["meal", "snack", "game", "clean", "scold", "medicine", "lights-off", "miss-care", "miss-disc", "sick", "die"].includes(
       e.type,
     ),
   );
@@ -631,11 +709,16 @@ export function undoLastCare(pet: Pet): Pet {
   }
   if (last.type === "lights-off") p.lightsOn = true;
   if (last.type === "sick") p.sick = false;
+  if (last.type === "die") {
+    p.dead = false;
+    p.deadAt = null;
+  }
   return pushEvent(p, "undo-miss", Date.now(), `Undid ${last.type}`);
 }
 
 /** Shell does not show this. Clears the icon without a scold, shot, or duck. */
 export function dismissOffShell(pet: Pet, kind: "poop" | "sick" | "discipline", at = Date.now()): Pet {
+  if (pet.dead) return pet;
   const p: Pet = { ...normalizePet(pet), lastTickAt: at };
   if (kind === "poop") {
     p.poop = 0;
@@ -658,6 +741,7 @@ export function dismissOffShell(pet: Pet, kind: "poop" | "sick" | "discipline", 
 
 /** User looked: the shell matches the prediction. Starts the real 15-min window for discipline. */
 export function confirmOnShell(pet: Pet, kind: "poop" | "sick" | "discipline", at = Date.now()): Pet {
+  if (pet.dead) return pet;
   let p: Pet = { ...normalizePet(pet), lastTickAt: at };
   if (kind === "poop") {
     p.poop = Math.min(4, p.poop + 1);
@@ -708,12 +792,15 @@ export function syncPet(
   opts?: { restartStage?: boolean; attention?: boolean },
 ): Pet {
   const formChanged = patch.form != null && patch.form !== pet.form;
-  const p: Pet = { ...catchUp(pet, at), ...patch, lastTickAt: at };
-  if (patch.hunger != null && patch.hunger !== pet.hunger) {
+  const caught = catchUp(pet, at);
+  const p: Pet = { ...caught, ...patch, lastTickAt: at };
+  if (patch.hunger != null && patch.hunger !== caught.hunger) {
     p.hungerWindowAt = p.hunger === 0 ? p.hungerWindowAt ?? at : null;
+    if (caught.hunger === 0 && p.hunger > 0) p.hungerAt = at;
   }
-  if (patch.happy != null && patch.happy !== pet.happy) {
+  if (patch.happy != null && patch.happy !== caught.happy) {
     p.happyWindowAt = p.happy === 0 ? p.happyWindowAt ?? at : null;
+    if (caught.happy === 0 && p.happy > 0) p.happyAt = at;
   }
   if (patch.poop != null && patch.poop !== pet.poop) {
     p.poopAt = at;
@@ -952,6 +1039,17 @@ export function derive(pet: Pet, now: number): DerivedState {
   }
 
   const rank: Record<Urgency, number> = { late: 0, now: 1, soon: 2, idle: 3 };
+  if (p.dead) {
+    alerts.splice(0, alerts.length, {
+      id: "dead",
+      kind: "hatch",
+      title: "Died",
+      detail: `Age ${p.age} · ${p.careMistakes} care mistakes. This run is frozen.`,
+      dueAt: p.deadAt ?? now,
+      urgency: "idle",
+      deviceHint: "Reset in Settings for a new egg",
+    });
+  }
   alerts.sort((a, b) => rank[a.urgency] - rank[b.urgency] || a.dueAt - b.dueAt);
   const primary = alerts.find((a) => a.urgency === "late" || a.urgency === "now") ?? alerts[0] ?? null;
 

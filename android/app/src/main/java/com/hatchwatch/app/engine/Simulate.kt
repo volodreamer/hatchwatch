@@ -97,8 +97,45 @@ object Simulate {
     }
 
     internal fun nextDrainAt(lastAt: Long, hearts: Int, lossMin: Int, wake: Int?, sleep: Int?): Long? {
-        if (lossMin >= 900) return null
+        if (lossMin >= 900 || hearts <= 0) return null
         return Clock.addAwakeMs(lastAt, lossMin * 60L * 1000, wake, sleep)
+    }
+
+    private fun oldestFillAt(pet: Pet, types: Set<ActionType>): Long? {
+        var oldest: Long? = null
+        for (e in pet.events) {
+            if (e.type !in types) continue
+            if (e.at < pet.stageStartedAt - 1000) continue
+            if (oldest == null || e.at < oldest) oldest = e.at
+        }
+        return oldest
+    }
+
+    private fun alignDrainFromFill(fillAt: Long, now: Long, intervalMs: Long): Long {
+        if (now <= fillAt || intervalMs <= 0) return fillAt
+        val completed = (now - fillAt) / intervalMs
+        return fillAt + completed * intervalMs
+    }
+
+    /** Baby clocks must not run while hearts are empty. Realign leftover that started at hatch. */
+    private fun repairEmptyStartClocks(p: Pet, now: Long): Pet {
+        if (p.form != CharacterId.babytchi) return p
+        var n = p
+        if (n.hunger > 0 && n.hungerAt <= n.hatchAt) {
+            val first = oldestFillAt(n, setOf(ActionType.meal, ActionType.sync))
+            if (first != null) {
+                val interval = Characters.hungerLossMin(n.form, n.age) * 60L * 1000
+                n = n.copy(hungerAt = alignDrainFromFill(first, now, interval))
+            }
+        }
+        if (n.happy > 0 && n.happyAt <= n.hatchAt) {
+            val first = oldestFillAt(n, setOf(ActionType.game, ActionType.snack, ActionType.sync))
+            if (first != null) {
+                val interval = Characters.happyLossMin(n.form, n.age) * 60L * 1000
+                n = n.copy(happyAt = alignDrainFromFill(first, now, interval))
+            }
+        }
+        return n
     }
 
     fun nextPoopAt(pet: Pet): Long? {
@@ -191,9 +228,7 @@ object Simulate {
     private fun dropHeart(pet: Pet, meter: String, at: Long): Pet {
         var p = pet
         val before = if (meter == "hunger") p.hunger else p.happy
-        if (before <= 0) {
-            return if (meter == "hunger") p.copy(hungerAt = at) else p.copy(happyAt = at)
-        }
+        if (before <= 0) return p
         p = if (meter == "hunger") {
             val h = maxOf(0, p.hunger - 1)
             p.copy(hunger = h, hungerAt = at, hungerWindowAt = if (h == 0) at else p.hungerWindowAt)
@@ -309,6 +344,7 @@ object Simulate {
     fun catchUp(pet: Pet, now: Long): Pet {
         var p = normalize(pet)
         if (p.dead) return p.copy(lastTickAt = now)
+        p = repairEmptyStartClocks(p, now)
         if (now <= p.lastTickAt) return p.copy(lastTickAt = now)
         var guard = 0
         while (guard++ < 2500) {

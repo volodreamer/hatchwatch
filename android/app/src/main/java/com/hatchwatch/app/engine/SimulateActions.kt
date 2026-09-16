@@ -10,13 +10,21 @@ fun simApplyAction(pet: Pet, type: ActionType, at: Long): Pet {
         ActionType.meal -> {
             if (p.sleeping) return Simulate.push(p, type, at, "Sleeping — meal ignored on the device")
             if (p.hunger >= 4) return Simulate.push(p, type, at, "Full — it may refuse the meal")
-            p = p.copy(hunger = min(4, p.hunger + 1), hungerWindowAt = null, weight = min(s.maxWeight, p.weight + 1))
+            val fromEmpty = p.hunger == 0
+            p = p.copy(
+                hunger = min(4, p.hunger + 1),
+                hungerWindowAt = null,
+                hungerAt = if (fromEmpty) at else p.hungerAt,
+                weight = min(s.maxWeight, p.weight + 1),
+            )
             Simulate.push(p, type, at, "Meal · hunger ${p.hunger}/4 · ${p.weight}g")
         }
         ActionType.snack -> {
             if (p.sleeping) return Simulate.push(p, type, at, "Sleeping — snack ignored on the device")
+            val fromEmpty = p.happy == 0
             p = p.copy(
                 happy = min(4, p.happy + 1), happyWindowAt = null,
+                happyAt = if (fromEmpty) at else p.happyAt,
                 weight = min(s.maxWeight, p.weight + 2), snackCount = p.snackCount + 1,
             )
             val replicaSnack = p.firmware == Firmware.replica &&
@@ -27,7 +35,13 @@ fun simApplyAction(pet: Pet, type: ActionType, at: Long): Pet {
         }
         ActionType.game -> {
             if (p.sleeping) return Simulate.push(p, type, at, "Sleeping — game ignored")
-            p = p.copy(happy = min(4, p.happy + 1), happyWindowAt = null, weight = maxOf(s.minWeight, p.weight - 1))
+            val fromEmpty = p.happy == 0
+            p = p.copy(
+                happy = min(4, p.happy + 1),
+                happyWindowAt = null,
+                happyAt = if (fromEmpty) at else p.happyAt,
+                weight = maxOf(s.minWeight, p.weight - 1),
+            )
             Simulate.push(p, type, at, "Game won · happy ${p.happy}/4 · ${p.weight}g")
         }
         ActionType.clean -> {
@@ -137,9 +151,11 @@ fun simSyncPet(pet: Pet, patch: SyncPatch, at: Long = System.currentTimeMillis()
     )
     if (patch.hunger != null && patch.hunger != caught.hunger) {
         p = p.copy(hungerWindowAt = if (p.hunger == 0) p.hungerWindowAt ?: at else null)
+        if (caught.hunger == 0 && p.hunger > 0) p = p.copy(hungerAt = at)
     }
     if (patch.happy != null && patch.happy != caught.happy) {
         p = p.copy(happyWindowAt = if (p.happy == 0) p.happyWindowAt ?: at else null)
+        if (caught.happy == 0 && p.happy > 0) p = p.copy(happyAt = at)
     }
     if (patch.poop != null && patch.poop != caught.poop) p = p.copy(poopAt = at)
     if (patch.sick == false) p = p.copy(medicineGiven = 0)

@@ -130,7 +130,9 @@ export const usePetStore = create<PetState>()(
           next.sleepWindowAt !== pet.sleepWindowAt ||
           next.checkPoopAt !== pet.checkPoopAt ||
           next.checkSickAt !== pet.checkSickAt ||
-          next.checkDiscAt !== pet.checkDiscAt;
+          next.checkDiscAt !== pet.checkDiscAt ||
+          next.hungerAt !== pet.hungerAt ||
+          next.happyAt !== pet.happyAt;
         if (changed) set({ pet: { ...next, lastTickAt: now } });
       },
       sync: (patch, opts) => {
