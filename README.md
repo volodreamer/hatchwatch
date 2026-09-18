@@ -45,26 +45,9 @@ Pages deploys from `.github/workflows/pages.yml` on every push to `main`. Repo �
 
 Works on GitHub Pages with no server. The pet stays in the browser; Google holds a second copy in Drive **app data** (not your normal Drive files). After you sign in, Hatchwatch keeps that copy in step while the tab is open. Save / Load are still there if Google has a different run.
 
-1. [Google Cloud Console](https://console.cloud.google.com/) → new project (e.g. Hatchwatch).
-2. Enable **Google Drive API**.
-3. **OAuth consent screen**: External, Testing. Add your Gmail as a test user.
-4. **Credentials** → Create credentials → OAuth client ID → Web application.
-5. Authorized JavaScript origins:
-   - `https://volodreamer.github.io`
-   - `http://localhost:8080` (local preview only)
-6. Copy the client ID.
-7. GitHub repo → Settings → Secrets and variables → Actions → Variables → `GOOGLE_CLIENT_ID` = that value.
-8. Re-run the Pages workflow.
-
-Until that variable is set, Settings still has file backup; the Google button stays off.
-
-Scopes requested: `drive.appdata` and email. Not full Drive.
-
 Privacy policy (for the Google consent screen): [volodreamer.github.io/hatchwatch/privacy.html](https://volodreamer.github.io/hatchwatch/privacy.html)
-
-For your own Gmail, keep the app in **Testing** and add that address as a test user. Publishing to Production with Drive app data also needs Google’s verification.
 
 ## Native Android
 
-Paused. Use the website for now.
+Available in android branch, with no google sign-in yet.
 
